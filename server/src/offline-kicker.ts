@@ -25,7 +25,7 @@ export function enableOfflineKicker(server: Server, props?: {
       console.info(`kicking ${username} due to being offline for too long`);
       server.kick(username);
     }, inactivitySeconds * 1000));
-  }
+  };
   const unlinkUnsub = server.on('unlink', startInactivityCountDown);
   // If a users joins through a connection, then a join is always directly followed by a link to that connection. However, when a user joins server
   //   side (for example: `server.join(<username>)`), then there is no link event. In the latter, starting an inactivity countdown does not make sense
@@ -33,7 +33,7 @@ export function enableOfflineKicker(server: Server, props?: {
   //   `false`.
   let joinUnsub = () => {};
   if (includeJoins) {
-     joinUnsub = server.on('join', startInactivityCountDown);
+    joinUnsub = server.on('join', startInactivityCountDown);
   }
 
   // Stop the inactivity countdown for a user when they are online (linked to a connection). This happens on link and leave.
@@ -42,7 +42,7 @@ export function enableOfflineKicker(server: Server, props?: {
       clearTimeout(inactivityTimeouts.get(username)!);
       inactivityTimeouts.delete(username);
     }
-  }
+  };
   const linkUnsub = server.on('link', stopInactivityCountDown);
   const leaveUnsub = server.on('leave', stopInactivityCountDown);
 
@@ -55,5 +55,5 @@ export function enableOfflineKicker(server: Server, props?: {
     for (const timeout of inactivityTimeouts.values()) {
       clearTimeout(timeout);
     }
-  }
+  };
 }

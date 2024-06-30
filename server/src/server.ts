@@ -1,7 +1,7 @@
 import { createServer, Props } from '@krmx/server';
 import { enableOfflineKicker } from './offline-kicker';
 
-const props: Props = { /* configure here */ }
+const props: Props = { /* configure here */ };
 const server = createServer(props);
 const disableOfflineKicker = enableOfflineKicker(server);
 
@@ -15,3 +15,4 @@ server.on('message', (username, message) => {
 });
 
 server.listen(8082);
+export default async () => server.close();

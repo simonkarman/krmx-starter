@@ -1,9 +1,9 @@
-"use client";
+'use client';
 import { useEffect, useState } from 'react';
 import { client, useClient, useMessages } from './krmx';
 
 // The example client component that you can use in your React app to connect to a Krmx server
-export function KrmxExampleClient({ serverUrl }: { serverUrl: string }) {
+function KrmxExampleClient({ serverUrl }: { serverUrl: string }) {
   // Use the Krmx client and the example message store in this component
   const { status, username, users } = useClient();
   const messages = useMessages();
