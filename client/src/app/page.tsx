@@ -30,6 +30,7 @@ export function KrmxExampleClient({ serverUrl }: { serverUrl: string }) {
 
   // Keep track of messages
   const [message, setMessage] = useState<string>('');
+  const [linkUsername, setLinkUsername] = useState<string>('simon');
 
   // Your logic for when you're not (yet) connected to the server goes here
   if (status === 'initializing' || status === 'connecting' || status === 'closing' || status === 'closed') {
@@ -48,13 +49,19 @@ export function KrmxExampleClient({ serverUrl }: { serverUrl: string }) {
   // Your logic for when your connection is not (yet) linked to a user goes here
   if (status === 'connected' || status === 'linking' || status === 'unlinking') {
     return (
-      <div>
+      <>
         <h2>Status: {status}</h2>
+        <input
+          onChange={(e) => setLinkUsername(e.target.value)}
+          value={linkUsername}
+          type="text"
+          placeholder="Username..."
+        />
         <button onClick={() => {
-          client.link('simon-' + crypto.randomUUID().substring(0, 4), 'no-auth')
-            .catch((e: Error) => setFailure(e.message))
+          client.link(linkUsername, 'no-auth')
+            .catch((e: Error) => setFailure(e.message));
         }}>
-          Link!
+          Link as {linkUsername}!
         </button>
         {failure && <p>Rejected: {failure}</p>}
         <button onClick={() => {
@@ -63,13 +70,13 @@ export function KrmxExampleClient({ serverUrl }: { serverUrl: string }) {
         }}>
           Disconnect!
         </button>
-      </div>
+      </>
     );
   }
 
   // Your logic for when you're ready to go goes here
   return (
-    <div>
+    <>
       <h2>Status: {status}</h2>
       <p>Welcome, <strong>{username}</strong>!</p>
       <button onClick={() => client.unlink().catch((e: Error) => setFailure(e.message))}>
@@ -109,7 +116,7 @@ export function KrmxExampleClient({ serverUrl }: { serverUrl: string }) {
           <strong>{username}</strong> says: {text}
         </li>)}
       </ul>
-    </div>
+    </>
   );
 }
 
