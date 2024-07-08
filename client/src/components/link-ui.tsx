@@ -1,6 +1,7 @@
 'use client';
 
 import { FullScreenWrapper } from '@/components/full-screen-wrapper';
+import { capitalize } from '@/utils/text';
 import { useEffect, useState } from 'react';
 import { client, useClient } from '@/utils/krmx';
 
@@ -62,7 +63,7 @@ export function LinkUI() {
           {failure && <p className="text-sm tracking-tight text-gray-700 dark:text-gray-300">
             Rejected:{' '}
             <span className="text-base font-bold tracking-normal text-red-600 dark:text-red-400">
-              {failure[0].toUpperCase() + failure.slice(1)}.
+              {capitalize(failure)}.
             </span>
           </p>}
         </div>

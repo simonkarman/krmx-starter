@@ -8,6 +8,10 @@ export function Chat() {
   const messages = useMessages();
   const [message, setMessage] = useState<string>('');
 
+  if (status !== 'linked') {
+    return null;
+  }
+
   return <>
     <h2>Messages</h2>
     <input

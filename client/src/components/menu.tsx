@@ -1,9 +1,8 @@
 'use client';
 
 import { client, useClient } from '@/utils/krmx';
+import { capitalize } from '@/utils/text';
 import { useEffect, useRef, useState } from 'react';
-
-const capitalize = (text: string) => text[0].toUpperCase() + text.slice(1);
 
 export function Menu(props: { showOthers?: boolean }) {
   const { status, username, users } = useClient();
