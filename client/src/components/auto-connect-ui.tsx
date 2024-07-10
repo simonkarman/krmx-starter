@@ -11,7 +11,9 @@ export function AutoConnectUI() {
 
   // Keep track of connect failures
   const [failure, setFailure] = useState<string | null>(null);
-  useEffect(() => { setFailure(null); }, [status]);
+  useEffect(() => {
+    setFailure(null);
+  }, [status]);
 
   // When the server url changes, disconnect the client from the server
   useEffect(() => {
@@ -57,7 +59,7 @@ export function AutoConnectUI() {
         😵
       </p>
       <div className="space-y-6">
-        <div className='md:text-xl dark:text-white'>
+        <div className="md:text-xl dark:text-white">
           <p className="font-semibold">
             Connection to the server was lost...
           </p>

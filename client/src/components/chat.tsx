@@ -26,27 +26,27 @@ export function Chat() {
   }
 
   return <div
-    className='min-w-72 space-y-3 absolute bottom-0 right-4 px-4 pt-2 pb-3 bg-gray-100 border border-b-0 border-gray-200
-               dark:border-gray-700 dark:bg-gray-800 rounded-t-lg'
+    className="absolute bottom-0 right-4 min-w-72 space-y-3 rounded-t-lg border border-b-0 border-gray-200 bg-gray-100 px-4 pb-3
+               pt-2 dark:border-gray-700 dark:bg-gray-800"
   >
     <div
-      className='flex justify-between cursor-pointer'
+      className="flex cursor-pointer justify-between"
       onClick={toggle}
     >
-      <div className='flex gap-2 items-center'>
-        <h2 className='font-bold text-lg'>Chat</h2>
-        {unread && <span className='block animate-pulse rounded-full w-3 h-3 bg-orange-700' />}
+      <div className="flex items-center gap-2">
+        <h2 className="text-lg font-bold">Chat</h2>
+        {unread && <span className="block h-3 w-3 animate-pulse rounded-full bg-orange-700"/>}
       </div>
       {open && <button
-        className="font-bold text-sm px-2 bg-gray-200 dark:bg-gray-700 rounded-lg"
+        className="rounded-lg bg-gray-200 px-2 text-sm font-bold dark:bg-gray-700"
         onClick={toggle}
       >
         x
       </button>}
     </div>
     {open && <>
-      <div className='my-7'>
-        <ul className='my-0'>
+      <div className="my-7">
+        <ul className="my-0">
           {messages.map(({ id, username, text }) => <li
             key={id}
           >
@@ -54,13 +54,13 @@ export function Chat() {
           </li>)}
         </ul>
       </div>
-      <form className='flex gap-2 w-full'>
+      <form className="flex w-full gap-2">
         <input
           onChange={(e) => setMessage(e.target.value)}
           value={message}
-          type='text'
-          placeholder='Message'
-          className="grow px-2 py-1 rounded-lg border border-gray-300 bg-gray-50 text-gray-900 focus:border-orange-600
+          type="text"
+          placeholder="Message"
+          className="grow rounded-lg border border-gray-300 bg-gray-50 px-2 py-1 text-gray-900 focus:border-orange-600
                          focus:ring-orange-600 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white
                          dark:placeholder:text-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
         />

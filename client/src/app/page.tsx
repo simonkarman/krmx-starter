@@ -10,8 +10,8 @@ export default function MyApp() {
     return null;
   }
 
-  return <div className='m-4'>
-    <h1 className='font-bold text-lg'>Welcome, {capitalize(username!)}!</h1>
-    <Chat />
+  return <div className="m-4">
+    <h1 className="text-lg font-bold">Welcome, {capitalize(username!)}!</h1>
+    <Chat/>
   </div>;
 }

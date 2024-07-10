@@ -31,7 +31,7 @@ export function enableOfflineKicker(server: Server, props?: {
   //   side (for example: `server.join(<username>)`), then there is no link event. In the latter, starting an inactivity countdown does not make sense
   //   as you probably want to give plenty of time to a user to join the server. Which is why the `includeJoins` option is available and defaults to
   //   `false`.
-  let joinUnsub = () => {};
+  let joinUnsub = () => { /*do nothing*/ };
   if (includeJoins) {
     joinUnsub = server.on('join', startInactivityCountDown);
   }

@@ -1,16 +1,18 @@
 'use client';
 
 import { FullScreenWrapper } from '@/components/full-screen-wrapper';
+import { client, useClient } from '@/utils/krmx';
 import { capitalize } from '@/utils/text';
 import { useEffect, useState } from 'react';
-import { client, useClient } from '@/utils/krmx';
 
 export function LinkUI() {
   const { status } = useClient();
 
   // Keep track of link failures
   const [failure, setFailure] = useState<string | null>(null);
-  useEffect(() => { setFailure(null); }, [status]);
+  useEffect(() => {
+    setFailure(null);
+  }, [status]);
 
   // Keep track of username input
   const [linkUsername, setLinkUsername] = useState<string>('');
@@ -23,7 +25,7 @@ export function LinkUI() {
   return (
     <FullScreenWrapper>
       <div className="mb-6 flex items-center text-2xl font-semibold text-gray-900 dark:text-white">
-        <img className="mr-3 h-8 w-8" src="/apple-touch-icon.png" alt="logo" />
+        <img className="mr-3 h-8 w-8" src="/apple-touch-icon.png" alt="logo"/>
         Krmx Starter
       </div>
       <div className="w-full rounded-lg bg-white shadow sm:max-w-md md:mt-0 dark:border dark:border-gray-700 dark:bg-gray-800">
