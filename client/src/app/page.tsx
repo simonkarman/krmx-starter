@@ -1,5 +1,6 @@
 'use client';
 
+import { Chat } from '@/components/chat';
 import { useClient } from '@/utils/krmx';
 import { capitalize } from '@/utils/text';
 
@@ -11,5 +12,6 @@ export default function MyApp() {
 
   return <div className='m-4'>
     <h1 className='font-bold text-lg'>Welcome, {capitalize(username!)}!</h1>
+    <Chat />
   </div>;
 }

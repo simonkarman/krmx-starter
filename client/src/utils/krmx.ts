@@ -10,7 +10,7 @@ export const useMessages = createStore(
   [] as { id: string, username: string, text: string }[],
   /* a reducer handling state changes based on incoming messages */
   (state, message) => {
-    if (message.type !== 'starter/messaged') return state;
+    if (message.type !== 'chat/messaged') return state;
     return [...state, { ...(message.payload as { username: string, text: string }), id: crypto.randomUUID() }].slice(-10);
   },
   /* a mapper that can map the internal state to a different format */
