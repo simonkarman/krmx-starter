@@ -1,14 +1,12 @@
 import { createServer, Props } from '@krmx/server';
+import { enableOfflineKicker } from './offline-kicker';
 
 const props: Props = { /* configure here */ };
 const server = createServer(props);
+enableOfflineKicker(server);
 
 interface Tile {
   content: string;
-}
-
-interface Player {
-  gridIndex: number;
 }
 
 type Move = 'up' | 'down' | 'right' | 'left' | 'none'
@@ -18,7 +16,7 @@ const gridHeight = 5;
 const worldGrid: Tile[] = [];
 const gameLoopTime: number = 5000;
 let moves: Record<string, Move> = {};
-const players: Record<string, Player> = {};
+const playerGridIndices: Record<string, number> = {};
 const direction: Record<Move, number> = {
   'up': -gridWidth,
   'down': gridWidth,
@@ -36,17 +34,14 @@ for (let i = 0; i < gridWidth; i++) {
 }
 
 server.on('leave', (username) => {
-  worldGrid[players[username].gridIndex].content = 'empty';
+  worldGrid[playerGridIndices[username]].content = 'empty';
   server.broadcast({ type: 'ao/grid', payload: worldGrid });
 });
 
 server.on('join', (username) => {
-  const player: Player = {
-    gridIndex: worldGrid.findIndex(w => w.content == 'empty'),
-  };
-
-  players[username] = player;
-  worldGrid[player.gridIndex].content = `player:${username}`;
+  const playerGridIndex = worldGrid.findIndex(w => w.content == 'empty');
+  playerGridIndices[username] = playerGridIndex;
+  worldGrid[playerGridIndex].content = `player:${username}`;
 
   server.broadcast({ type: 'ao/grid', payload: worldGrid }, username);
 });
@@ -58,14 +53,9 @@ server.on('link', (username) => {
 });
 
 server.on('message', (username, message) => {
-  console.log(username);
-  console.log(message);
-
   if (message.type === 'chat/message') {
     server.broadcast({ type: 'chat/messaged', payload: { username, text: message.payload } });
   }
-
-  //Receive move commands from players
   if (message.type === 'ao/move') {
     moves[username] = message.payload as Move;
     server.send(username, { type: 'ao/move-confirmed', payload: message.payload });
@@ -73,20 +63,22 @@ server.on('message', (username, message) => {
 });
 
 function doGameLoop() {
+  if (server.getStatus() !== 'listening') {
+    return;
+  }
+
   for (const userName in moves) {
     const move = moves[userName];
-    const player = players[userName];
-    if (player === undefined) {
+    const playerGridIndex = playerGridIndices[userName];
+    if (playerGridIndex === undefined) {
       console.log('move found for non existing player' + userName);
       continue;
     }
 
-    const playerIndex = player?.gridIndex as number;
-    const modulesRemainder = playerIndex % gridWidth;
-
     //Outside grid, do not move
-    if ((move === 'up' && playerIndex - gridWidth < 0)
-      || (move === 'down' && playerIndex + gridWidth >= worldGrid.length)
+    const modulesRemainder = playerGridIndex % gridWidth;
+    if ((move === 'up' && playerGridIndex - gridWidth < 0)
+      || (move === 'down' && playerGridIndex + gridWidth >= worldGrid.length)
       || (move === 'left' && modulesRemainder === 0)
       || (move === 'right' && modulesRemainder === (gridWidth - 1))) {
       console.log(`${userName} moves outside grid, do nothing`);
@@ -94,29 +86,31 @@ function doGameLoop() {
       continue;
     }
 
-    const targetIndex = player.gridIndex + direction[move];
-
-    //is tile available?
+    // Is tile available?
+    const targetIndex = playerGridIndex + direction[move];
     if (worldGrid[targetIndex].content === 'empty') {
-      worldGrid[player.gridIndex].content = 'empty';
-      player.gridIndex += direction[move];
-      worldGrid[player.gridIndex].content = `player:${userName}`;
-      console.log(`player ${userName} moved to ${player.gridIndex}`);
+      worldGrid[playerGridIndex].content = 'empty';
+      playerGridIndices[userName] += direction[move];
+      worldGrid[targetIndex].content = `player:${userName}`;
+      console.log(`player ${userName} moved to ${playerGridIndex}`);
     } else {
       server.send(userName, { type: 'ao/move-denied', payload: 'obstruction' });
+      continue;
     }
-
   }
 
-  //reset the moves
+  // Reset the moves of each player
   moves = {};
 
-  //Update the world
+  // Broadcast updated the world
   server.broadcast({ type: 'ao/grid', payload: worldGrid });
   server.broadcast({ type: 'ao/game-loop', payload: gameLoopTime });
 }
 
-setInterval(doGameLoop, gameLoopTime);
+const gameLoopIntervalId = setInterval(doGameLoop, gameLoopTime);
 
 server.listen(8082);
-export default async () => server.close();
+export default async () => {
+  clearInterval(gameLoopIntervalId);
+  await server.close();
+};
