@@ -62,7 +62,7 @@ export function AutoConnectUI() {
   }
 
   return <FullScreenWrapper>
-    <div className="flex items-center gap-10">
+    <div className="flex items-center gap-6 md:gap-8">
       <p className="text-6xl md:text-8xl">
         {
           isConnecting
