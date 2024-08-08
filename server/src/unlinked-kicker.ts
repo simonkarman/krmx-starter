@@ -1,15 +1,15 @@
 import { Server } from '@krmx/server';
 
 /**
- * Kicks users who are offline (not linked to a connection) for too long.
+ * Kicks users who are not linked to a connection for too long.
  *
- * @param server The server to enable the offline kicker on.
- * @param props Additional properties to configure the offline kicker.
- *              - interactivitySeconds - The number of seconds a user needs to be offline before it is kicked (default = 60).
+ * @param server The server to enable the unlinked kicker on.
+ * @param props Additional properties to configure the unlinked kicker.
+ *              - interactivitySeconds - The number of seconds a user needs to be unlinked before it is kicked (default = 60).
  *              - includeJoins - Whether to include join events in the inactivity timeout (default = false).
- * @returns A function that disables the offline kicker.
+ * @returns A function that disables the unlinked kicker.
  */
-export function enableOfflineKicker(server: Server, props?: {
+export function enableUnlinkedKicker(server: Server, props?: {
   inactivitySeconds?: number,
   includeJoins?: boolean,
 }): () => void {

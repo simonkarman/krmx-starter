@@ -1,9 +1,11 @@
 import { createServer, Props } from '@krmx/server';
-import { enableOfflineKicker } from './offline-kicker';
+import { cli } from './cli';
+import { enableUnlinkedKicker } from './unlinked-kicker';
 
 const props: Props = { /* configure here */ };
 const server = createServer(props);
-enableOfflineKicker(server);
+enableUnlinkedKicker(server);
+cli(server);
 
 server.on('message', (username, message) => {
   if (message.type === 'chat/message') {
