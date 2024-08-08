@@ -2,18 +2,12 @@
 
 import { FullScreenWrapper } from '@/components/full-screen-wrapper';
 import { client, useClient } from '@/utils/krmx';
-import { capitalize } from '@/utils/text';
 import { useEffect, useState } from 'react';
 
 export function AutoConnectUI() {
   const { status } = useClient();
   const [serverUrl, setServerUrl] = useState<string>('ws://localhost:8082');
-
-  // Keep track of connect failures
-  const [failure, setFailure] = useState<string | null>(null);
-  useEffect(() => {
-    setFailure(null);
-  }, [status]);
+  const [isConnecting, setIsConnecting] = useState<boolean>(true);
 
   // When the server url changes, disconnect the client from the server
   useEffect(() => {
@@ -21,23 +15,37 @@ export function AutoConnectUI() {
       client.disconnect(true)
         .catch((e: Error) => {
           console.error('error disconnecting while mounting', e);
-          setFailure(e.message);
         });
     }
 
-    // Try to reconnect after every 250ms (if not yet connected)
-    const intervalId = setInterval(() => {
-      if (client.getStatus() !== 'initializing' && client.getStatus() !== 'closed') {
+    // Try to reconnect after every 2.5 seconds (if not yet connected)
+    let tries = 0;
+    const maxTries = 10;
+    function tryConnect() {
+      const status = client.getStatus();
+      if (status !== 'initializing' && status !== 'closed') {
+        if (tries > 0 && status !== 'connecting' && status !== 'closing') {
+          tries = 0;
+          setIsConnecting(true);
+        }
         return;
       }
+      if (tries >= maxTries) {
+        setIsConnecting(false);
+        return;
+      }
+      tries += 1;
       client.connect(serverUrl)
         .catch((e: Error) => {
-          console.error('error connecting', e);
+          console.error(`${tries}x: error connecting`, e);
         });
-    }, 250);
+    }
+    const timeoutId = setTimeout(tryConnect, 250);
+    const intervalId = setInterval(tryConnect, 2500);
 
     // And... disconnect from the server when the component unmounts
     return () => {
+      clearTimeout(timeoutId);
       clearInterval(intervalId);
       if (client.getStatus() !== 'initializing' && client.getStatus() !== 'closed') {
         client.disconnect(true)
@@ -48,43 +56,29 @@ export function AutoConnectUI() {
     };
   }, [serverUrl]);
 
-  // Only render this component if the client is initializing or closed and ready to connect
-  if (status !== 'initializing' && status !== 'closed') {
+  // Only render this component if the client is initializing, connecting or closed
+  if (status !== 'initializing' && status !== 'connecting' && status !== 'closed') {
     return null;
   }
 
   return <FullScreenWrapper>
-    <div className="flex items-center gap-10">
+    <div className="flex items-center gap-6 md:gap-8">
       <p className="text-6xl md:text-8xl">
-        😵
+        {
+          isConnecting
+            ? <span className={'block h-14 w-14 animate-spin rounded-full border-4 md:h-20 md:w-20 md:border-8 ' +
+                               'border-t-blue-800 dark:border-t-blue-200 border-gray-100 dark:border-gray-800'}/>
+            : '😵'
+        }
       </p>
       <div className="space-y-6">
         <div className="md:text-xl dark:text-white">
           <p className="font-semibold">
-            Connection to the server was lost...
+            {isConnecting ? 'Waiting for a connection to the server' : 'Unable to connect to the server'}
           </p>
           <p className="text-gray-700 dark:text-gray-300">
-            Please, try again.
+            {isConnecting ? 'Trying to connect...' : 'Please, come back later.'}
           </p>
-          {failure && <p className="text-gray-700 dark:text-gray-300">
-            {capitalize(failure)}
-          </p>}
-        </div>
-        <div className="flex gap-4">
-          <button
-            className="grow rounded-lg bg-orange-600 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-orange-700
-                       focus:outline-none focus:ring-4 focus:ring-orange-300 dark:bg-orange-600 dark:hover:bg-orange-700 dark:focus:ring-orange-800"
-            onClick={() => client.connect(serverUrl)}
-          >
-            Reconnect
-          </button>
-          <button
-            className="grow-0 rounded-lg bg-orange-600 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-orange-700
-                       focus:outline-none focus:ring-4 focus:ring-orange-300 dark:bg-orange-600 dark:hover:bg-orange-700 dark:focus:ring-orange-800"
-            onClick={() => client.connect(serverUrl)}
-          >
-            Custom
-          </button>
         </div>
       </div>
     </div>

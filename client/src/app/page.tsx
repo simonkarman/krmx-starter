@@ -11,7 +11,8 @@ export default function MyApp() {
   }
 
   return <div className="m-4">
-    <h1 className="text-lg font-bold">Welcome, {capitalize(username!)}!</h1>
     <Chat/>
+    <h1 className="text-lg font-bold">Welcome, {capitalize(username!)}!</h1>
+    <p>There is nothing here yet...</p>
   </div>;
 }
