@@ -1,10 +1,11 @@
 'use client';
 
 import { client, useClient, useMessages } from '@/utils/krmx';
+import { capitalize } from '@/utils/text';
 import { useEffect, useState } from 'react';
 
 export function Chat() {
-  const { status } = useClient();
+  const { status, username: self } = useClient();
   const messages = useMessages();
   const [message, setMessage] = useState<string>('');
   const [open, setOpen] = useState(false);
@@ -47,14 +48,31 @@ export function Chat() {
     {open && <>
       <div className="my-7">
         <ul className="my-0">
-          {messages.map(({ id, username, text }) => <li
-            key={id}
-          >
-            <strong>{username}</strong>: {text}
-          </li>)}
+          {messages.map(({ id, username, text }, index) => {
+            const isSelf = self === username;
+            const isBlockStart = index === 0 || messages[index - 1].username !== username;
+            return <li
+              key={id}
+              className={isSelf ? 'text-right' : 'text-left'}
+            >
+              <strong
+                className={`inline-block border-b border-gray-300 text-sm dark:border-gray-700 ${
+                  isBlockStart ? 'visible' : 'hidden'
+                } ${
+                  isSelf ? 'text-orange-600' : 'text-blue-600'
+                } ${
+                  index === 0 ? 'mt-0' : 'mt-4'
+                }`}
+              >
+                {capitalize(username)}:
+                <br/>
+              </strong>
+              <span className="block max-w-96 text-wrap px-1">{text}</span>
+            </li>;
+          })}
         </ul>
       </div>
-      <form className="flex w-full gap-2">
+      <form className="flex w-full gap-2 pb-2 pt-4">
         <input
           onChange={(e) => setMessage(e.target.value)}
           value={message}
