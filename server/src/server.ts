@@ -7,6 +7,13 @@ const server = createServer(props);
 enableUnlinkedKicker(server);
 cli(server);
 
+// Enable this to limit the number of users that can join the server
+// server.on('authenticate', (username, isNewUser, reject) => {
+//   if (server.getUsers().length > 4 && isNewUser) {
+//     reject('server is full');
+//   }
+// });
+
 server.on('message', (username, message) => {
   if (message.type === 'chat/message') {
     server.broadcast({ type: 'chat/messaged', payload: { username, text: message.payload } });
