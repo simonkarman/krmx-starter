@@ -40,7 +40,7 @@ export function Menu(props: { showOthers?: boolean }) {
     }
     {showLeave && <div
       ref={backgroundRef}
-      className="absolute inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.6)] dark:bg-[rgba(0,0,0,0.4)]"
+      className="absolute inset-0 z-10 flex items-center justify-center bg-[rgba(0,0,0,0.6)] dark:bg-[rgba(0,0,0,0.4)]"
       onClick={(e) => {
         if (e.target === backgroundRef.current) {
           setShowLeave(false);

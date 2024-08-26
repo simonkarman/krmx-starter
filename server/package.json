@@ -2,6 +2,7 @@
   "name": "server",
   "version": "0.0.1",
   "main": "src/server.ts",
+  "private": true,
   "scripts": {
     "precommit": "npm run lint && npm test",
     "dev": "nodemon --watch src src/server.ts",
@@ -27,6 +28,7 @@
   },
   "dependencies": {
     "@krmx/server": "^0.5.4",
-    "chalk": "^4.1.2"
+    "chalk": "^4.1.2",
+    "board": "file:../board"
   }
 }
