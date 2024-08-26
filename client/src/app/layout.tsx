@@ -2,7 +2,6 @@ import './globals.css';
 import { AutoConnectUI } from '@/components/auto-connect-ui';
 import { LinkUI } from '@/components/link-ui';
 import { Menu } from '@/components/menu';
-import { Vector2 } from 'board';
 
 export const metadata = {
   title: 'Krmx Starter',
@@ -14,7 +13,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const vector2 = new Vector2(0, 0);
   return (
     <html>
       <head>
@@ -28,7 +26,6 @@ export default function RootLayout({
         <LinkUI/>
         <Menu/>
         {children}
-        {vector2.toSvgString()}
       </body>
     </html>
   );

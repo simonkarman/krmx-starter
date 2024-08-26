@@ -31,7 +31,6 @@ export function AutoConnectUI() {
         return;
       }
       if (tries >= maxTries) {
-        setIsConnecting(false);
         return;
       }
       tries += 1;
@@ -39,8 +38,11 @@ export function AutoConnectUI() {
         .catch((e: Error) => {
           console.error(`${tries}x: error connecting`, e);
         });
+      if (tries >= maxTries) {
+        setIsConnecting(false);
+      }
     }
-    const timeoutId = setTimeout(tryConnect, 250);
+    const timeoutId = setTimeout(tryConnect, 50);
     const intervalId = setInterval(tryConnect, 2500);
 
     // And... disconnect from the server when the component unmounts

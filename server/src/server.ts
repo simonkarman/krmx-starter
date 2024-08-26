@@ -9,9 +9,9 @@ const server = createServer(props);
 enableUnlinkedKicker(server);
 cli(server);
 chat(server, {
-  'list': (username, args, sendServerMessage) => {
+  'time': (username, args, sendServerMessage) => {
     if (args.length === 0) {
-      sendServerMessage(server.getUsers().map(u => u.username).join(', '));
+      sendServerMessage(new Date().toTimeString());
     }
   },
 });

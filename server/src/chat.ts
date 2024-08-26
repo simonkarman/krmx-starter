@@ -34,17 +34,28 @@ export const chat = (server: Server, customCommands: {[command: string]: (
 
   // Send messages on join and leave of users
   server.on('join', (username) => {
-    sendMessage('<server>', `${capitalize(username)} has joined the server!`);
+    if (chatHistory.length > 0) {
+      sendMessage('<server>', `${capitalize(username)} has joined the server!`);
+    }
   });
   server.on('leave', (username) => {
-    sendMessage('<server>', `${capitalize(username)} left the server.`);
+    if (chatHistory.length > 0) {
+      sendMessage('<server>', `${capitalize(username)} left the server.`);
+    }
+    // Clear chat history if no users are connected
+    if (server.getUsers().length === 0) {
+      chatHistory = [];
+    }
   });
 
   // Handle chat messages
   server.on('message', (username, message) => {
     if (message.type === 'chat/message' && 'payload' in message && typeof message.payload === 'string') {
-      let handled = false;
+      sendMessage(username, message.payload);
+
+      // Handle commands
       if (message.payload.startsWith('/')) {
+        let handled = false;
         const [command, ...args] = message.payload.slice(1).split(' ');
 
         // Kick
@@ -86,10 +97,18 @@ export const chat = (server: Server, customCommands: {[command: string]: (
           customCommands[command](username, args, (text) => sendMessage('<server>', text));
           handled = true;
         }
-      }
 
-      if (!handled) {
-        sendMessage(username, message.payload);
+        if (!handled) {
+          sendMessage(
+            '<server>',
+            `Unknown command: /${command}. Try ${
+              Object
+                .keys(customCommands)
+                .map(c => `/${c}`)
+                .join(', ')
+            }, /kick, /ban, /unban or /banlist command.`,
+          );
+        }
       }
     }
   });
