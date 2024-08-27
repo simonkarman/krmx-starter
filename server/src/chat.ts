@@ -1,6 +1,5 @@
 import { Server } from '@krmx/server';
-
-const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+import { capitalize, enumerate } from 'board';
 
 export const chat = (server: Server, customCommands: {[command: string]: (
   username: string,
@@ -40,7 +39,7 @@ export const chat = (server: Server, customCommands: {[command: string]: (
   });
   server.on('leave', (username) => {
     if (chatHistory.length > 0) {
-      sendMessage('<server>', `${capitalize(username)} left the server.`);
+      sendMessage('<server>', `${capitalize(username)} has left the server.`);
     }
     // Clear chat history if no users are connected
     if (server.getUsers().length === 0) {
@@ -56,7 +55,7 @@ export const chat = (server: Server, customCommands: {[command: string]: (
       // Handle commands
       if (message.payload.startsWith('/')) {
         let handled = false;
-        const [command, ...args] = message.payload.slice(1).split(' ');
+        const [command, ...args] = message.payload.slice(1).toLowerCase().split(' ');
 
         // Kick
         if (command === 'kick' && args.length === 1 && server.getUsers().some(u => u.username === args[0])) {
@@ -87,7 +86,7 @@ export const chat = (server: Server, customCommands: {[command: string]: (
           if (banList.length === 0) {
             sendMessage('<server>', 'No users are banned.');
           } else {
-            sendMessage('<server>', `Banned users: ${banList.join(', ')}`);
+            sendMessage('<server>', `Banned users: ${enumerate(banList.map(capitalize))}`);
           }
           handled = true;
         }
@@ -101,12 +100,12 @@ export const chat = (server: Server, customCommands: {[command: string]: (
         if (!handled) {
           sendMessage(
             '<server>',
-            `Unknown command: /${command}. Try ${
+            `Unknown command. Try ${
               Object
                 .keys(customCommands)
                 .map(c => `/${c}`)
                 .join(', ')
-            }, /kick, /ban, /unban or /banlist command.`,
+            }, /kick, /ban, /unban or /banlist`,
           );
         }
       }

@@ -2,7 +2,7 @@
 
 import { Chat } from '@/components/chat';
 import { useClient } from '@/utils/krmx';
-import { capitalize } from '@/utils/text';
+import { capitalize } from 'board';
 
 export default function MyApp() {
   const { status, username } = useClient();

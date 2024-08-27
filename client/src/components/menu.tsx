@@ -1,7 +1,7 @@
 'use client';
 
 import { client, useClient } from '@/utils/krmx';
-import { capitalize } from '@/utils/text';
+import { capitalize } from 'board';
 import { useEffect, useRef, useState } from 'react';
 
 export function Menu(props: { showOthers?: boolean }) {

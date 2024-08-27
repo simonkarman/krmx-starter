@@ -1,7 +1,7 @@
 'use client';
 
 import { client, Message, useClient, useMessages } from '@/utils/krmx';
-import { capitalize } from '@/utils/text';
+import { capitalize } from 'board';
 import { useEffect, useState } from 'react';
 
 export function Chat() {
@@ -15,7 +15,7 @@ export function Chat() {
     if (!open) {
       setUnread(messages.length > 0);
     }
-  }, [open, messages]);
+  }, [messages]);
 
   const toggle = () => {
     setOpen(!open);
@@ -58,24 +58,24 @@ export function Chat() {
     {open && <>
       <div className="my-7 border-t border-gray-300 dark:border-gray-700">
         <ul className="my-0 flex max-h-96 flex-col-reverse gap-4 overflow-x-scroll pr-3">
-          {messagesPerUser.map(({ username, messages }, index) => {
+          {messagesPerUser.map(({ username, messages }) => {
             const isSelf = self === username;
+            const isServer = username === '<server>';
+            const headerColor = isSelf
+              ? 'text-orange-600 dark:text-orange-200'
+              : (isServer ? 'hidden text-gray-400 dark:text-gray-600' : 'text-blue-600 dark:text-blue-200');
+            const messageColor = isServer ? 'text-sm py-2 text-gray-500 dark:text-gray-400' : '';
+            const messageSideBorder = isSelf
+              ? 'border-r pr-1 text-right'
+              : 'border-l pl-1 text-left';
             return <li
               key={username + '-' + messages[0].id}
-              className={`border-gray-300 dark:border-gray-700 ${isSelf
-                ? 'border-r pr-1 text-right'
-                : 'border-l pl-1 text-left'
-              }`}
+              className={`border-gray-300 dark:border-gray-700 ${isServer ? 'text-center' : messageSideBorder}`}
             >
-              <p className={`inline-block px-1 pb-1 text-xs ${isSelf
-                ? 'text-orange-200'
-                : 'text-blue-200'
-              }`}>
-                {capitalize(username)}
-              </p>
+              <p className={`inline-block px-1 pb-1 text-xs ${headerColor}`}>{capitalize(username)}</p>
               {messages.toReversed().map(({ text, id }) => <p
                 key={id}
-                className="max-w-96 text-wrap px-1"
+                className={`max-w-96 text-wrap px-1 ${messageColor}`}
               >
                 {text}
               </p>)}
