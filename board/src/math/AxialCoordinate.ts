@@ -4,11 +4,6 @@ import { HexDirection } from './HexDirection';
 import { Vector2 } from './Vector2';
 
 export class AxialCoordinate {
-  constructor(
-    public readonly q: number,
-    public readonly r: number,
-  ) {}
-
   public static readonly Zero = new AxialCoordinate(0, 0);
   public static readonly Up = new AxialCoordinate(0, +1);
   public static readonly RightUp = new AxialCoordinate(+1, 0);
@@ -20,7 +15,13 @@ export class AxialCoordinate {
     AxialCoordinate.Up, AxialCoordinate.RightUp, AxialCoordinate.RightDown,
     AxialCoordinate.Down, AxialCoordinate.LeftDown, AxialCoordinate.LeftUp,
   ];
-
+  constructor(
+    public readonly q: number,
+    public readonly r: number,
+  ) {}
+  public get length() {
+    return this.toCube().length;
+  }
   public static add(a: AxialCoordinate, b: AxialCoordinate | HexDirection) {
     if ('value' in b) {
       if (b.value == HexDirection.None.value) {
@@ -30,10 +31,6 @@ export class AxialCoordinate {
     }
     return new AxialCoordinate(a.q + b.q, a.r + b.r);
   }
-  public add(other: AxialCoordinate | HexDirection) {
-    return AxialCoordinate.add(this, other);
-  }
-
   public static subtract(a: AxialCoordinate, b: AxialCoordinate | HexDirection) {
     if ('value' in b) {
       if (b.value == HexDirection.None.value) {
@@ -43,61 +40,21 @@ export class AxialCoordinate {
     }
     return new AxialCoordinate(a.q - b.q, a.r - b.r);
   }
-  public subtract(other: AxialCoordinate | HexDirection) {
-    return AxialCoordinate.subtract(this, other);
-  }
-
   public static approximatelyEqual(a: AxialCoordinate, b: AxialCoordinate, epsilon = 0.001) {
     return (approximatelyEqual(a.q, b.q, epsilon) && approximatelyEqual(a.r, b.r, epsilon));
   }
-  public approximatelyEqual(other: AxialCoordinate, epsilon = 0.001) {
-    return AxialCoordinate.approximatelyEqual(this, other, epsilon);
-  }
-
   public static multiply(a: AxialCoordinate, s: number) {
     return new AxialCoordinate(a.q * s, a.r * s);
   }
-  public multiply(s: number) {
-    return AxialCoordinate.multiply(this, s);
-  }
-
-  public rounded() {
-    return this.toCube().rounded().toAxial();
-  }
-
-  public toCube() {
-    return new CubeCoordinate(this.q, -this.q - this.r, this.r);
-  }
-
-  public toPixel(size: number): Vector2 {
-    return new Vector2(
-      size * 3 / 2 * this.q,
-      size * Math.sqrt(3) * (this.r + this.q / 2),
-    );
-  }
-
   public static fromPixel(pixel: Vector2, size: number) {
     return new AxialCoordinate(
       pixel.x * 2 / 3 / size,
       (-pixel.x / 3 + Math.sqrt(3) / 3 * pixel.y) / size,
     );
   }
-
-  public toString() {
-    return `Axial(${this.q}, ${this.r})`;
-  }
-
-  public get length() {
-    return this.toCube().length;
-  }
-
   public static distance(a: AxialCoordinate, b: AxialCoordinate) {
     return a.toCube().distance(b.toCube());
   }
-  public distance(other: AxialCoordinate) {
-    return AxialCoordinate.distance(this, other);
-  }
-
   public static circle(center: AxialCoordinate, radius: number): AxialCoordinate[] {
     const coords: AxialCoordinate[] = [];
     center = center.rounded();
@@ -113,13 +70,12 @@ export class AxialCoordinate {
     }
     return coords;
   }
-
   public static rectangle(
     center: AxialCoordinate,
     direction: HexDirection,
     halfLength: number,
     halfThickness: number,
-    extra: boolean = false,
+    extra = false,
   ): AxialCoordinate[] {
     const primary = AxialCoordinate.Directions[direction.value];
     const secondary = AxialCoordinate.Directions[(direction.value + 1) % 6];
@@ -139,5 +95,35 @@ export class AxialCoordinate {
       }
     }
     return coords;
+  }
+  public add(other: AxialCoordinate | HexDirection) {
+    return AxialCoordinate.add(this, other);
+  }
+  public subtract(other: AxialCoordinate | HexDirection) {
+    return AxialCoordinate.subtract(this, other);
+  }
+  public approximatelyEqual(other: AxialCoordinate, epsilon = 0.001) {
+    return AxialCoordinate.approximatelyEqual(this, other, epsilon);
+  }
+  public multiply(s: number) {
+    return AxialCoordinate.multiply(this, s);
+  }
+  public rounded() {
+    return this.toCube().rounded().toAxial();
+  }
+  public toCube() {
+    return new CubeCoordinate(this.q, -this.q - this.r, this.r);
+  }
+  public toPixel(size: number): Vector2 {
+    return new Vector2(
+      size * 3 / 2 * this.q,
+      size * Math.sqrt(3) * (this.r + this.q / 2),
+    );
+  }
+  public toString() {
+    return `Axial(${this.q}, ${this.r})`;
+  }
+  public distance(other: AxialCoordinate) {
+    return AxialCoordinate.distance(this, other);
   }
 }

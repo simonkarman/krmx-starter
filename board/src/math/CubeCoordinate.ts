@@ -3,12 +3,6 @@ import { AxialCoordinate } from './AxialCoordinate';
 import { HexDirection } from './HexDirection';
 
 export class CubeCoordinate {
-  constructor(
-    public readonly x: number,
-    public readonly y: number,
-    public readonly z: number,
-  ) { }
-
   public static readonly Zero = new CubeCoordinate(0, 0, 0);
   public static readonly Up = new CubeCoordinate(0, -1, +1);
   public static readonly RightUp = new CubeCoordinate(+1, -1, 0);
@@ -20,7 +14,14 @@ export class CubeCoordinate {
     CubeCoordinate.Up, CubeCoordinate.RightUp, CubeCoordinate.RightDown,
     CubeCoordinate.Down, CubeCoordinate.LeftDown, CubeCoordinate.LeftUp,
   ];
-
+  constructor(
+    public readonly x: number,
+    public readonly y: number,
+    public readonly z: number,
+  ) {}
+  public get length() {
+    return (Math.abs(this.x) + Math.abs(this.y) + Math.abs(this.z)) / 2;
+  }
   public static add(a: CubeCoordinate, b: CubeCoordinate | HexDirection) {
     if ('value' in b) {
       if (b.value == HexDirection.None.value) {
@@ -30,10 +31,6 @@ export class CubeCoordinate {
     }
     return new CubeCoordinate(a.x + b.x, a.y + b.y, a.z + b.z);
   }
-  public add(other: CubeCoordinate | HexDirection) {
-    return CubeCoordinate.add(this, other);
-  }
-
   public static subtract(a: CubeCoordinate, b: CubeCoordinate | HexDirection) {
     if ('value' in b) {
       if (b.value == HexDirection.None.value) {
@@ -43,26 +40,29 @@ export class CubeCoordinate {
     }
     return new CubeCoordinate(a.x - b.x, a.y - b.y, a.z - b.z);
   }
-  public subtract(other: CubeCoordinate | HexDirection) {
-    return CubeCoordinate.subtract(this, other);
-  }
-
   public static approximatelyEqual(a: CubeCoordinate, b: CubeCoordinate, epsilon = 0.001) {
     return (approximatelyEqual(a.x, b.x, epsilon)
       && approximatelyEqual(a.y, b.y, epsilon)
       && approximatelyEqual(a.z, b.z, epsilon));
   }
-  public approximatelyEqual(other: CubeCoordinate, epsilon = 0.001) {
-    return CubeCoordinate.approximatelyEqual(this, other, epsilon);
-  }
-
   public static multiply(a: CubeCoordinate, s: number) {
     return a.toAxial().multiply(s).toCube();
+  }
+  public static distance(a: CubeCoordinate, b: CubeCoordinate) {
+    return (Math.abs(a.x - b.x) + Math.abs(a.y - b.y) + Math.abs(a.z - b.z)) / 2;
+  }
+  public add(other: CubeCoordinate | HexDirection) {
+    return CubeCoordinate.add(this, other);
+  }
+  public subtract(other: CubeCoordinate | HexDirection) {
+    return CubeCoordinate.subtract(this, other);
+  }
+  public approximatelyEqual(other: CubeCoordinate, epsilon = 0.001) {
+    return CubeCoordinate.approximatelyEqual(this, other, epsilon);
   }
   public multiply(s: number) {
     return CubeCoordinate.multiply(this, s);
   }
-
   public rounded() {
     let roundedX = Math.round(this.x);
     let roundedY = Math.round(this.y);
@@ -74,30 +74,18 @@ export class CubeCoordinate {
 
     if ((xDiff > yDiff) && (xDiff > zDiff)) {
       roundedX = -roundedY - roundedZ;
-    }
-    else if (yDiff > zDiff) {
+    } else if (yDiff > zDiff) {
       roundedY = -roundedX - roundedZ;
-    }
-    else {
+    } else {
       roundedZ = -roundedX - roundedY;
     }
     return new CubeCoordinate(roundedX, roundedY, roundedZ);
   }
-
   public toAxial() {
     return new AxialCoordinate(this.x, this.z);
   }
-
   public toString() {
     return `Cube(${this.x}, ${this.y}, ${this.z})`;
-  }
-
-  public get length() {
-    return (Math.abs(this.x) + Math.abs(this.y) + Math.abs(this.z)) / 2;
-  }
-
-  public static distance(a: CubeCoordinate, b: CubeCoordinate) {
-    return (Math.abs(a.x - b.x) + Math.abs(a.y - b.y) + Math.abs(a.z - b.z)) / 2;
   }
   public distance(other: CubeCoordinate) {
     return CubeCoordinate.distance(this, other);

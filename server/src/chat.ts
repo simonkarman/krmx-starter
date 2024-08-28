@@ -100,7 +100,7 @@ export const chat = (server: Server, customCommands: {[command: string]: (
         if (!handled) {
           sendMessage(
             '<server>',
-            `Unknown command. Try ${
+            `Unknown command by ${capitalize(username)}. Try ${
               Object
                 .keys(customCommands)
                 .map(c => `/${c}`)
