@@ -18,8 +18,8 @@ export function Menu(props: { showOthers?: boolean }) {
     return null;
   }
 
-  return <div className="flex items-center gap-3 border-b border-gray-200 bg-gray-100 dark:border-gray-600 dark:bg-gray-800">
-    <p className="border-r border-gray-200 px-3 py-0.5 dark:border-gray-700">
+  return <div className="flex items-center gap-3 border-b border-slate-200 bg-slate-100 dark:border-slate-600 dark:bg-slate-800">
+    <p className="border-r border-slate-200 px-3 py-0.5 dark:border-slate-700">
       <strong><span className="text-sm">👤</span> {capitalize(username!)}</strong>
     </p>
     <ul className="flex grow gap-3 text-sm text-gray-900 dark:text-gray-100">
@@ -40,7 +40,7 @@ export function Menu(props: { showOthers?: boolean }) {
     }
     {showLeave && <div
       ref={backgroundRef}
-      className="absolute inset-0 z-10 flex items-center justify-center bg-[rgba(0,0,0,0.6)] dark:bg-[rgba(0,0,0,0.4)]"
+      className="absolute inset-0 z-10 flex items-center justify-center bg-[rgba(0,0,0,0.6)] px-2"
       onClick={(e) => {
         if (e.target === backgroundRef.current) {
           setShowLeave(false);
@@ -48,8 +48,8 @@ export function Menu(props: { showOthers?: boolean }) {
       }}
     >
       <div
-        className="max-w-sm space-y-4 rounded-lg border border-gray-300 bg-white p-4 shadow
-                   dark:border-gray-700 dark:bg-gray-800"
+        className="max-w-sm space-y-4 rounded-lg border border-slate-300 bg-white p-4 shadow
+                   dark:border-slate-700 dark:bg-slate-800"
       >
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">
           Leaving?

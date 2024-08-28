@@ -37,8 +37,8 @@ export function Chat() {
   }, []);
 
   return <div
-    className="absolute bottom-0 right-4 min-w-72 space-y-3 rounded-t-lg border border-b-0 border-gray-200 bg-gray-100 px-4 pb-3
-               pt-2 dark:border-gray-700 dark:bg-gray-800"
+    className="absolute bottom-0 right-4 min-w-72 space-y-3 rounded-t-lg border border-b-0 border-slate-200 bg-slate-100 px-4 pb-3
+               pt-2 dark:border-slate-700 dark:bg-slate-800"
   >
     <div
       className="flex cursor-pointer justify-between"
@@ -49,14 +49,14 @@ export function Chat() {
         {unread && <span className="block h-3 w-3 animate-pulse rounded-full bg-orange-700"/>}
       </div>
       {open && <button
-        className="rounded-lg bg-gray-200 px-2 text-sm font-bold dark:bg-gray-700"
+        className="rounded-lg bg-slate-200 px-2 text-sm font-bold dark:bg-slate-700"
         onClick={toggle}
       >
         x
       </button>}
     </div>
     {open && <>
-      <div className="my-7 border-t border-gray-300 dark:border-gray-700">
+      <div className="my-7 border-t border-slate-300 dark:border-slate-700">
         <ul className="my-0 flex max-h-96 flex-col-reverse gap-4 overflow-x-scroll pr-3">
           {messagesPerUser.map(({ username, messages }) => {
             const isSelf = self === username;
@@ -70,7 +70,7 @@ export function Chat() {
               : 'border-l pl-1 text-left';
             return <li
               key={username + '-' + messages[0].id}
-              className={`border-gray-300 dark:border-gray-700 ${isServer ? 'text-center' : messageSideBorder}`}
+              className={`border-slate-300 dark:border-slate-700 ${isServer ? 'text-center' : messageSideBorder}`}
             >
               <p className={`inline-block px-1 pb-1 text-xs ${headerColor}`}>{capitalize(username)}</p>
               {messages.toReversed().map(({ text, id }) => <p
@@ -89,8 +89,8 @@ export function Chat() {
           value={message}
           type="text"
           placeholder="Message"
-          className="grow rounded-lg border border-gray-300 bg-gray-50 px-2 py-1 text-gray-900 focus:border-orange-600
-                         focus:ring-orange-600 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white
+          className="grow rounded-lg border border-slate-300 bg-slate-50 px-2 py-1 text-gray-900 focus:border-orange-600
+                         focus:ring-orange-600 sm:text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white
                          dark:placeholder:text-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
         />
         <button

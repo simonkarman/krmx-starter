@@ -69,7 +69,7 @@ export function AutoConnectUI() {
         {
           isConnecting
             ? <span className={'block h-14 w-14 animate-spin rounded-full border-4 md:h-20 md:w-20 md:border-8 ' +
-                               'border-t-blue-800 dark:border-t-blue-200 border-gray-100 dark:border-gray-800'}/>
+                               'border-t-blue-800 dark:border-t-blue-200 border-slate-100 dark:border-slate-800'}/>
             : '😵'
         }
       </p>
