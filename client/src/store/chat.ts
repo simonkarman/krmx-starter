@@ -1,8 +1,5 @@
-import { createClient, createStore } from '@krmx/client-react';
-
-// Create the client
-export const { client, useClient } = createClient();
-client.on('message', console.info);
+import { client } from '@/store/krmx';
+import { createStore } from '@krmx/client-react';
 
 // Create an example store for messages received from the server
 let id = 0;

@@ -1,6 +1,7 @@
 'use client';
 
-import { client, Message, useClient, useMessages } from '@/utils/krmx';
+import { Message, useMessages } from '@/store/chat';
+import { client, useClient } from '@/store/krmx';
 import { capitalize } from 'board';
 import { useEffect, useState } from 'react';
 
@@ -89,6 +90,7 @@ export function Chat() {
           value={message}
           type="text"
           placeholder="Message"
+          autoFocus
           className="grow rounded-lg border border-slate-300 bg-slate-50 px-2 py-1 text-gray-900 focus:border-orange-600
                          focus:ring-orange-600 sm:text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white
                          dark:placeholder:text-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"

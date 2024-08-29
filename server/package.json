@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "precommit": "npm run lint && npm test",
-    "dev": "nodemon --watch src --watch ../board/dist/src src/server.ts",
+    "dev": "nodemon --delay 1 --watch src --watch ../board/dist/src src/server.ts",
     "test": "jest --coverage --verbose",
     "lint": "eslint . --ext .ts"
   },

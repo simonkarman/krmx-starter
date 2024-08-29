@@ -1,7 +1,7 @@
 'use client';
 
 import { FullScreenWrapper } from '@/components/full-screen-wrapper';
-import { client, useClient } from '@/utils/krmx';
+import { client, useClient } from '@/store/krmx';
 import { useEffect, useState } from 'react';
 
 export function AutoConnectUI() {

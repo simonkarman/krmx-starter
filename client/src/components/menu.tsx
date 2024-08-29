@@ -1,6 +1,6 @@
 'use client';
 
-import { client, useClient } from '@/utils/krmx';
+import { client, useClient } from '@/store/krmx';
 import { capitalize } from 'board';
 import { useEffect, useRef, useState } from 'react';
 

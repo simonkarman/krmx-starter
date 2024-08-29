@@ -8,7 +8,7 @@ export const metadata = {
   description: 'A starter for Krmx React applications.',
 };
 
-export default function RootLayout({
+export default function Layout({
   children,
 }: {
   children: React.ReactNode
