@@ -52,7 +52,7 @@ export const Tile = (props: {
   const pixel = props.location.toPixel(props.gridSize);
   return (<g
     className='transition-transform duration-500'
-    transform={`translate(${new Vector2(pixel.x, -pixel.y).toSvgString()}) rotate(${(props.rotation ?? 0) * 60})`}
+    transform={`translate(${new Vector2(pixel.x, -pixel.y).toSvgString()}) rotate(${props.rotation ?? 0})`}
   >
     <polygon
       points={

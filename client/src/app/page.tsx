@@ -4,7 +4,7 @@ import { Chat } from '@/components/chat';
 import { Tile } from '@/components/tile';
 import { client, useClient } from '@/store/krmx';
 import { Message } from '@krmx/base';
-import { AxialCoordinate, capitalize, Vector2 } from 'board';
+import { AxialCoordinate, capitalize, HexDirection, Vector2 } from 'board';
 import { useEffect, useState } from 'react';
 
 const useSyncedState = <T, >(key: string, defaultValue: T): [T, ((v: (T) | ((v: T) => T)) => void)] => {
@@ -48,25 +48,28 @@ export default function Page() {
     return null;
   }
 
-  const svgSize = new Vector2(200, 200);
-  return <div className="m-4">
+  const svgSize = new Vector2(450, 450);
+  return <div className="m-2 space-y-2 sm:mx-4">
     <Chat/>
     <h1 className="text-lg font-bold">Welcome, {capitalize(username!)}!</h1>
     <p>There is nothing here yet...</p>
-    <p>Rotation {rotation}</p>
     <svg
-      className='mb-1 max-h-[75vh] w-full'
+      className='max-h-[75vh] w-full cursor-pointer border'
       preserveAspectRatio='xMidYMid meet'
       viewBox={`${-svgSize.x / 2} ${-svgSize.y / 2} ${svgSize.x} ${svgSize.y}`}
-      onClick={() => setRotation((r: number) => r + 1)}
+      onClick={(e) => {
+        setRotation((r: number) => r + 1);
+        e.stopPropagation();
+      }}
     >
-      <Tile
-        tileSize={50}
-        gridSize={52}
-        location={new AxialCoordinate(0, 0)}
-        rotation={rotation * 0.2}
+      {AxialCoordinate.rectangle(AxialCoordinate.Zero, HexDirection.Down, 3, 8, true).map((coordinate, i) => <Tile
+        key={i}
+        tileSize={46}
+        gridSize={55}
+        location={coordinate}
+        rotation={(rotation ?? 0) * 6}
         lines={[]}
-      />
+      />)}
     </svg>
   </div>;
 }
