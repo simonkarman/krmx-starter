@@ -32,7 +32,7 @@ export class Random {
     this.d = h4 >>> 0;
   }
 
-  private next(): number {
+  public next(): number {
     // sfc32 implementation
     this.a >>>= 0; this.b >>>= 0; this.c >>>= 0; this.d >>>= 0;
     let t = (this.a + this.b) | 0;

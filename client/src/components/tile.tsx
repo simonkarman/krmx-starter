@@ -1,4 +1,4 @@
-import { AxialCoordinate, Vector2 } from 'board';
+import { approximatelyEqual, AxialCoordinate, Vector2 } from 'board';
 
 export interface Line {
   fromAnchorId: number;
@@ -34,7 +34,7 @@ const TileLine = (props: {
   return <>
     <path
       d={`M ${from.x} ${from.y} C ${centerFrom.x} ${centerFrom.y} ${centerTo.x} ${centerTo.y} ${to.x} ${to.y}`}
-      stroke={props.color}
+      className={`transition-colors duration-300 ${props.color}`}
       strokeWidth={props.tileSize * props.strokeWidth}
       strokeOpacity={props.opacity}
       fill='transparent'
@@ -48,8 +48,10 @@ export const Tile = (props: {
   location: AxialCoordinate,
   lines: Line[],
   rotation: number | undefined,
+  className?: string,
 }) => {
   const pixel = props.location.toPixel(props.gridSize);
+  const isAligned = approximatelyEqual((props.rotation ?? 0) % 60, 0);
   return (<g
     className='transition-transform duration-500'
     transform={`translate(${new Vector2(pixel.x, -pixel.y).toSvgString()}) rotate(${props.rotation ?? 0})`}
@@ -61,11 +63,8 @@ export const Tile = (props: {
           .map(corner => corner.multiply(props.tileSize))
           .map(corner => `${corner.x},${corner.y}`).join(' ')
       }
-      fill={props.rotation !== undefined ? '#F7DC6F' : '#FCF3CF'}
-      fillOpacity={0.8}
-      stroke={'#FCF3CF'}
-      strokeOpacity={1}
-      strokeWidth={props.tileSize * 0.025}
+      className={props.className}
+      strokeWidth={props.tileSize * 0.05}
     />
     {[...props.lines]
       .map(line => <g key={`${line.fromAnchorId}-${line.toAnchorId}`}>
@@ -73,15 +72,18 @@ export const Tile = (props: {
           tileSize={props.tileSize}
           fromAnchorId={line.fromAnchorId}
           toAnchorId={line.toAnchorId}
-          color={'#F7DC6F'}
-          opacity={0.5}
+          color={'stroke-indigo-600 dark:stroke-indigo-700'}
+          opacity={1}
           strokeWidth={0.21}
         />
         <TileLine
           tileSize={props.tileSize}
           fromAnchorId={line.fromAnchorId}
           toAnchorId={line.toAnchorId}
-          color={'white'}
+          color={`${isAligned
+            ? 'stroke-white'
+            : 'stroke-indigo-300 dark:stroke-indigo-400'
+          } hover:stroke-indigo-600 dark:hover:stroke-indigo-700`}
           opacity={1}
           strokeWidth={0.13}
         />

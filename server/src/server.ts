@@ -40,7 +40,7 @@ const interval = setInterval(() => {
   syncStateListener('<server>', {
     type: 'sync/state',
     payload: { key: 'rotation', set: (syncStates['rotation'] as number ?? 0) - 1 } });
-}, 700);
+}, 1300);
 
 server.listen(8084);
 
