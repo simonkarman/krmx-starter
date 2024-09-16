@@ -1,8 +1,8 @@
-import { Message } from '@krmx/base';
 import { createServer, Props } from '@krmx/server';
 import { chat } from './chat';
 import { cli } from './cli';
 import { enableUnlinkedKicker } from './unlinked-kicker';
+import { useSyncedValue } from './use/synced-value';
 
 // Setup server
 const props: Props = { /* configure here */ };
@@ -17,29 +17,18 @@ chat(server, {
   },
 });
 
-const syncStates: { [key: string]: unknown } = {};
-const syncStateListener = (username: string, message: Message) => {
-  if (message.type == 'sync/state') {
-    const payload = message.payload as { key: string, get?: unknown, set: unknown };
-    const key = payload.key;
-    if (payload.get) {
-      let state = syncStates[key];
-      if (state === undefined) {
-        state = payload.get;
-      }
-      syncStates[key] = state;
-      server.send(username, { type: 'sync/state', payload: { key, set: state } });
-    } else {
-      syncStates[key] = payload.set;
-      server.broadcast({ type: 'sync/state', payload: { key, set: syncStates[key] } });
-    }
-  }
-};
-server.on('message', syncStateListener);
+const { get, set } = useSyncedValue(server, { clearOnEmptyServer: true });
 const interval = setInterval(() => {
-  syncStateListener('<server>', {
-    type: 'sync/state',
-    payload: { key: 'rotation', set: (syncStates['rotation'] as number ?? 0) - 1 } });
+  if (server.getUsers().length === 0) {
+    return;
+  }
+  // const rotation = get('rotation');
+  // set(
+  //   'rotation',
+  //   typeof rotation === 'number'
+  //     ? rotation + 1
+  //     : 0,
+  // );
 }, 1300);
 
 server.listen(8084);

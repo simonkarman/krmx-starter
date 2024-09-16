@@ -1,7 +1,7 @@
 import { client } from '@/store/krmx';
 import { createStore } from '@krmx/client-react';
 
-// Create an example store for messages received from the server
+// Create a store for chat messages received from the server
 let id = 0;
 export type Message = { id: number, username: string, text: string };
 export const useMessages = createStore(
