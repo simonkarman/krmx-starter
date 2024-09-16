@@ -30,7 +30,7 @@ export default function Page() {
   return <div className="m-2 space-y-2 sm:mx-4">
     <Chat/>
     <h1 className="text-lg font-bold">Welcome, {capitalize(username!)}!</h1>
-    <p>There is nothing here yet... {rotation}</p>
+    <p>There is nothing here yet...</p>
     <svg
       className='max-h-[75vh] w-full cursor-pointer rounded-xl'
       preserveAspectRatio='xMidYMid meet'
@@ -38,6 +38,7 @@ export default function Page() {
       onClick={(e) => {
         setRotation((r) => r + 1);
         e.stopPropagation();
+        e.preventDefault();
       }}
     >
       <g transform={`rotate(${rotation})`} className={'transition-transform duration-700'}>
@@ -51,6 +52,16 @@ export default function Page() {
           className={'fill-indigo-500 stroke-indigo-600 dark:fill-indigo-600 dark:stroke-indigo-700'}
         />)}
       </g>
+      <text
+        x={0}
+        y={0}
+        textAnchor='middle'
+        dominantBaseline='middle'
+        className='fill-slate-50 stroke-indigo-800 font-mono text-8xl font-bold dark:fill-current dark:stroke-indigo-900'
+        strokeWidth={2}
+      >
+        {rotation}
+      </text>
     </svg>
   </div>;
 }

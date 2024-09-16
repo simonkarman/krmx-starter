@@ -22,13 +22,13 @@ const interval = setInterval(() => {
   if (server.getUsers().length === 0) {
     return;
   }
-  // const rotation = get('rotation');
-  // set(
-  //   'rotation',
-  //   typeof rotation === 'number'
-  //     ? rotation + 1
-  //     : 0,
-  // );
+  const rotation = get('rotation');
+  set(
+    'rotation',
+    typeof rotation === 'number'
+      ? rotation + 1
+      : 0,
+  );
 }, 1300);
 
 server.listen(8084);
