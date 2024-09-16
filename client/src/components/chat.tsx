@@ -1,7 +1,8 @@
 'use client';
 
-import { client, useClient, useMessages } from '@/utils/krmx';
-import { capitalize } from '@/utils/text';
+import { Message, useMessages } from '@/store/chat';
+import { client, useClient } from '@/store/krmx';
+import { capitalize } from 'board';
 import { useEffect, useState } from 'react';
 
 export function Chat() {
@@ -26,48 +27,59 @@ export function Chat() {
     return null;
   }
 
+  type UserMessages = { username: string, messages: { id: number, text: string }[] }[];
+  const messagesPerUser = messages.toReversed().reduce<UserMessages>((acc: UserMessages, next: Message) => {
+    if (acc.length > 0 && acc[acc.length - 1].username === next.username) {
+      acc[acc.length - 1].messages.push({ id: next.id, text: next.text });
+    } else {
+      acc.push({ username: next.username, messages: [{ id: next.id, text: next.text }] });
+    }
+    return acc;
+  }, []);
+
   return <div
-    className="absolute bottom-0 right-4 min-w-72 space-y-3 rounded-t-lg border border-b-0 border-gray-200 bg-gray-100 px-4 pb-3
-               pt-2 dark:border-gray-700 dark:bg-gray-800"
+    className="absolute bottom-0 right-4 min-w-72 space-y-3 rounded-t-lg border border-b-0 border-slate-200 bg-slate-100 px-4 pb-3
+               pt-2 dark:border-slate-700 dark:bg-slate-800"
   >
     <div
       className="flex cursor-pointer justify-between"
       onClick={toggle}
     >
       <div className="flex items-center gap-2">
-        <h2 className="text-lg font-bold">Chat</h2>
+        <h2 className="font-bold">Chat</h2>
         {unread && <span className="block h-3 w-3 animate-pulse rounded-full bg-orange-700"/>}
       </div>
       {open && <button
-        className="rounded-lg bg-gray-200 px-2 text-sm font-bold dark:bg-gray-700"
+        className="rounded-lg bg-slate-200 px-2 text-sm font-bold dark:bg-slate-700"
         onClick={toggle}
       >
         x
       </button>}
     </div>
     {open && <>
-      <div className="my-7">
-        <ul className="my-0">
-          {messages.map(({ id, username, text }, index) => {
+      <div className="my-7 border-t border-slate-300 dark:border-slate-700">
+        <ul className="my-0 flex max-h-96 flex-col-reverse gap-4 overflow-x-scroll pr-3">
+          {messagesPerUser.map(({ username, messages }) => {
             const isSelf = self === username;
-            const isBlockStart = index === 0 || messages[index - 1].username !== username;
+            const isServer = username === '<server>';
+            const headerColor = isSelf
+              ? 'text-orange-600 dark:text-orange-200'
+              : (isServer ? 'hidden text-gray-400 dark:text-gray-600' : 'text-blue-600 dark:text-blue-200');
+            const messageColor = isServer ? 'text-sm py-2 text-gray-500 dark:text-gray-400' : '';
+            const messageSideBorder = isSelf
+              ? 'border-r pr-1 text-right'
+              : 'border-l pl-1 text-left';
             return <li
-              key={id}
-              className={isSelf ? 'text-right' : 'text-left'}
+              key={username + '-' + messages[0].id}
+              className={`border-slate-300 dark:border-slate-700 ${isServer ? 'text-center' : messageSideBorder}`}
             >
-              <strong
-                className={`inline-block border-b border-gray-300 text-sm dark:border-gray-700 ${
-                  isBlockStart ? 'visible' : 'hidden'
-                } ${
-                  isSelf ? 'text-orange-600' : 'text-blue-600'
-                } ${
-                  index === 0 ? 'mt-0' : 'mt-4'
-                }`}
+              <p className={`inline-block px-1 pb-1 text-xs ${headerColor}`}>{capitalize(username)}</p>
+              {messages.toReversed().map(({ text, id }) => <p
+                key={id}
+                className={`max-w-96 text-wrap px-1 ${messageColor}`}
               >
-                {capitalize(username)}:
-                <br/>
-              </strong>
-              <span className="block max-w-96 text-wrap px-1">{text}</span>
+                {text}
+              </p>)}
             </li>;
           })}
         </ul>
@@ -78,8 +90,9 @@ export function Chat() {
           value={message}
           type="text"
           placeholder="Message"
-          className="grow rounded-lg border border-gray-300 bg-gray-50 px-2 py-1 text-gray-900 focus:border-orange-600
-                         focus:ring-orange-600 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white
+          autoFocus
+          className="grow rounded-lg border border-slate-300 bg-slate-50 px-2 py-1 text-gray-900 focus:border-orange-600
+                         focus:ring-orange-600 sm:text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white
                          dark:placeholder:text-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
         />
         <button

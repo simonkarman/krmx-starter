@@ -4,9 +4,10 @@
   "description": "A starter project for an application using [Krmx](https://simonkarman.github.io/krmx) and React.",
   "scripts": {
     "postinstall": "npm run install-all",
-    "install-all": "npm --prefix server install && npm --prefix client install",
-    "precommit": "npm run --prefix server precommit && npm run --prefix client precommit",
+    "install-all": "npm --prefix board install && npm --prefix server install && npm --prefix client install",
+    "precommit": "npm run --prefix board precommit && npm run --prefix server precommit && npm run --prefix client precommit",
     "dev": "npm-run-all --parallel dev:*",
+    "dev:board": "npm run --prefix board dev",
     "dev:server": "npm run --prefix server dev",
     "dev:client": "npm run --prefix client dev"
   },

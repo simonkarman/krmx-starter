@@ -1,12 +1,12 @@
 'use client';
 
 import { FullScreenWrapper } from '@/components/full-screen-wrapper';
-import { client, useClient } from '@/utils/krmx';
+import { client, useClient } from '@/store/krmx';
 import { useEffect, useState } from 'react';
 
 export function AutoConnectUI() {
   const { status } = useClient();
-  const [serverUrl] = useState<string>('ws://localhost:8082');
+  const [serverUrl] = useState<string>('ws://localhost:8084');
   const [isConnecting, setIsConnecting] = useState<boolean>(true);
 
   // When the server url changes, disconnect the client from the server
@@ -31,7 +31,6 @@ export function AutoConnectUI() {
         return;
       }
       if (tries >= maxTries) {
-        setIsConnecting(false);
         return;
       }
       tries += 1;
@@ -39,8 +38,11 @@ export function AutoConnectUI() {
         .catch((e: Error) => {
           console.error(`${tries}x: error connecting`, e);
         });
+      if (tries >= maxTries) {
+        setIsConnecting(false);
+      }
     }
-    const timeoutId = setTimeout(tryConnect, 250);
+    const timeoutId = setTimeout(tryConnect, 50);
     const intervalId = setInterval(tryConnect, 2500);
 
     // And... disconnect from the server when the component unmounts
@@ -67,7 +69,7 @@ export function AutoConnectUI() {
         {
           isConnecting
             ? <span className={'block h-14 w-14 animate-spin rounded-full border-4 md:h-20 md:w-20 md:border-8 ' +
-                               'border-t-blue-800 dark:border-t-blue-200 border-gray-100 dark:border-gray-800'}/>
+                               'border-t-blue-800 dark:border-t-blue-200 border-slate-100 dark:border-slate-800'}/>
             : '😵'
         }
       </p>

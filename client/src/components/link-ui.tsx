@@ -1,8 +1,8 @@
 'use client';
 
 import { FullScreenWrapper } from '@/components/full-screen-wrapper';
-import { client, useClient } from '@/utils/krmx';
-import { capitalize } from '@/utils/text';
+import { client, useClient } from '@/store/krmx';
+import { capitalize } from 'board';
 import { useEffect, useState } from 'react';
 
 export function LinkUI() {
@@ -28,7 +28,7 @@ export function LinkUI() {
         <img className="mr-3 h-8 w-8" src="/apple-touch-icon.png" alt="logo"/>
         Krmx Starter
       </div>
-      <div className="w-full rounded-lg bg-white shadow sm:max-w-md md:mt-0 dark:border dark:border-gray-700 dark:bg-gray-800">
+      <div className="w-full rounded-lg bg-white shadow sm:max-w-md md:mt-0 dark:border dark:border-slate-700 dark:bg-slate-800">
         <div className="space-y-4 p-6 sm:p-8 md:space-y-6">
           <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
             Join the server
@@ -45,8 +45,8 @@ export function LinkUI() {
               <input
                 type="username" name="username" id="username"
                 placeholder="username" required
-                className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-900 focus:border-orange-600
-                         focus:ring-orange-600 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white
+                className="block w-full rounded-lg border border-slate-300 bg-slate-50 p-2.5 text-gray-900 focus:border-orange-600
+                         focus:ring-orange-600 sm:text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white
                          dark:placeholder:text-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
                 value={linkUsername}
                 onChange={(event) => {
