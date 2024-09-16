@@ -58,7 +58,7 @@ export function Chat() {
     </div>
     {open && <>
       <div className="my-7 border-t border-slate-300 dark:border-slate-700">
-        <ul className="my-0 flex max-h-96 flex-col-reverse gap-4 overflow-x-scroll pr-3">
+        <ul className="my-0 flex max-h-96 flex-col-reverse gap-4 overflow-x-hidden pr-3">
           {messagesPerUser.map(({ username, messages }) => {
             const isSelf = self === username;
             const isServer = username === '<server>';
