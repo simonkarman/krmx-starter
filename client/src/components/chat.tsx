@@ -9,6 +9,7 @@ export function Chat() {
   const { status, username: self } = useClient();
   const messages = useMessages();
   const [message, setMessage] = useState<string>('');
+  const [lastMessage, setLastMessage] = useState<string>('');
   const [open, setOpen] = useState(false);
   const [unread, setUnread] = useState(false);
 
@@ -87,6 +88,16 @@ export function Chat() {
       <form className="flex w-full gap-2 pb-2 pt-4">
         <input
           onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={(e) => {
+            console.info(e.key);
+            if (e.key === 'ArrowUp' && lastMessage.length > 0) {
+              setMessage(lastMessage);
+              e.preventDefault();
+            } else if (e.key === 'ArrowDown') {
+              setMessage('');
+              e.preventDefault();
+            }
+          }}
           value={message}
           type="text"
           placeholder="Message"
@@ -99,6 +110,7 @@ export function Chat() {
           disabled={message.length === 0}
           onClick={() => {
             client.send({ type: 'chat/message', payload: message });
+            setLastMessage(message);
             setMessage('');
           }}
           className="grow-0 rounded-lg bg-orange-600 px-3 text-center text-sm font-medium text-white hover:bg-orange-700 focus:outline-none

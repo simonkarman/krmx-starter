@@ -1,5 +1,5 @@
 import { Server } from '@krmx/server';
-import { isSyncedValueSetMessage, SyncedValueSetMessage } from 'board';
+import { isSyncedValueSetMessage, SyncedValue, SyncedValueSetMessage } from 'board';
 /**
  * Properties to configure the synchronization of simple values.
  */
@@ -8,7 +8,17 @@ type UseSyncedValueProps = {
    * Clear the values when the server is empty.
    */
   clearOnEmptyServer?: boolean,
-  // TODO: Add support for keys with '<username>/<key-name>' to only be set by the user with that username.
+
+  /**
+   * Only allow the user to set values with keys that are prefixed with their username and a slash.
+   *
+   * By default, or if set to false: all users can set any key with slashes.
+   * If set to true: only the user with the username in the key can set the value. For example, if the user's username is 'alice', only they
+   *                 can set values with keys like 'alice/rotation'.
+   *
+   * Note: Keys without a slash are always allowed to be set by any user.
+   */
+  strictKeyPrefixes?: boolean,
 };
 
 /**
@@ -22,14 +32,15 @@ type UseSyncedValueProps = {
  */
 export const useSyncedValue = (server: Server, props: UseSyncedValueProps) => {
   // Keep track of the synced values.
-  let syncedValues: { [key: string]: unknown } = {};
+  let syncedValues: { [key: string]: SyncedValue } = {};
 
   // Everytime a message is received, check if it is a set value message, and if so, set the value and broadcast it.
-  const offMessage = server.on('message', (_, message) => {
-    console.info('outside', message.type, message.payload);
+  const offMessage = server.on('message', (username, message) => {
     if (isSyncedValueSetMessage(message)) {
-      console.info('inside', message.type, message.payload.key, message.payload.value);
       const { key, value } = message.payload;
+      if (props.strictKeyPrefixes === true && key.includes('/') && !key.startsWith(`${username}/`)) {
+        return;
+      }
       syncedValues[key] = value;
       server.broadcast<SyncedValueSetMessage>({ type: 'sv/set', payload: { key, value } });
     }
@@ -68,7 +79,7 @@ export const useSyncedValue = (server: Server, props: UseSyncedValueProps) => {
      * @param key The key of the value to get.
      * @returns The value.
      */
-    get(key: string): unknown {
+    get(key: string): SyncedValue {
       return syncedValues[key];
     },
 
@@ -78,9 +89,18 @@ export const useSyncedValue = (server: Server, props: UseSyncedValueProps) => {
      * @param key The key of the value to set.
      * @param value The value to set.
      */
-    set(key: string, value: unknown) {
+    set(key: string, value: SyncedValue) {
       syncedValues[key] = value;
       server.broadcast<SyncedValueSetMessage>({ type: 'sv/set', payload: { key, value } });
+    },
+
+    /**
+     * Get all keys.
+     *
+     * @returns The keys of the values.
+     */
+    getKeys(): string[] {
+      return Object.keys(syncedValues);
     },
   };
 };
