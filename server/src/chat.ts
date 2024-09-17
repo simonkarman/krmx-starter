@@ -4,7 +4,7 @@ import { capitalize, enumerate } from 'board';
 export const chat = (server: Server, customCommands: {[command: string]: (
   username: string,
   args: string[],
-  sendServerMessage: (text: string) => void
+  sendServerMessage: (text: string, isExclusive?: boolean) => void
 ) => void } = {}) => {
 
   // Keep track of banned users
@@ -19,16 +19,21 @@ export const chat = (server: Server, customCommands: {[command: string]: (
   });
 
   // Keep track of chat history
-  let chatHistory: { username: string, text: string }[] = [];
-  const sendMessage = (username: string, text: string) => {
-    const chatMessage = { username, text };
-    server.broadcast({ type: 'chat/messaged', payload: chatMessage });
-    chatHistory = [...chatHistory, chatMessage].slice(-100);
+  let chatHistory: { username: string, text: string, exclusiveDelivery?: string }[] = [];
+  const sendMessage = (username: string, text: string, exclusiveDelivery?: string) => {
+    const chatMessage = { type: 'chat/messaged', payload: { username, text } };
+    if (exclusiveDelivery) {
+      server.send(exclusiveDelivery, chatMessage);
+    } else {
+      server.broadcast(chatMessage);
+    }
+    chatHistory = [...chatHistory, { ...chatMessage.payload, exclusiveDelivery }].slice(-100);
   };
 
-  // Send chat history to new users
+  // Send chat history to a user that links
   server.on('link', (username) => {
-    server.send(username, { type: 'chat/history', payload: chatHistory });
+    const historyPayload = chatHistory.filter(c => c.exclusiveDelivery === undefined || c.exclusiveDelivery === username);
+    server.send(username, { type: 'chat/history', payload: historyPayload });
   });
 
   // Send messages on join and leave of users
@@ -49,66 +54,71 @@ export const chat = (server: Server, customCommands: {[command: string]: (
 
   // Handle chat messages
   server.on('message', (username, message) => {
-    if (message.type === 'chat/message' && 'payload' in message && typeof message.payload === 'string') {
+    if (!(message.type === 'chat/message' && 'payload' in message && typeof message.payload === 'string')) {
+      return;
+    }
+
+    if (!message.payload.startsWith('/')) {
+      // Handle chat messages
       sendMessage(username, message.payload);
+      return;
+    }
 
-      // Handle commands
-      if (message.payload.startsWith('/')) {
-        let handled = false;
-        const [command, ...args] = message.payload.slice(1).toLowerCase().split(' ');
+    // Handle commands
+    let handled = false;
+    const [command, ...args] = message.payload.slice(1).toLowerCase().split(' ');
 
-        // Kick
-        if (command === 'kick' && args.length === 1 && server.getUsers().some(u => u.username === args[0])) {
-          sendMessage('<server>', `${capitalize(args[0])} was kicked by ${capitalize(username)}`);
-          server.kick(args[0]);
-          handled = true;
-        }
+    // Kick
+    if (command === 'kick' && args.length === 1 && server.getUsers().some(u => u.username === args[0])) {
+      sendMessage('<server>', `${capitalize(args[0])} was kicked by ${capitalize(username)}`);
+      server.kick(args[0]);
+      handled = true;
+    }
 
-        // Ban
-        else if (command === 'ban' && args.length === 1) {
-          sendMessage('<server>', `${capitalize(args[0])} was banned by ${capitalize(username)}`);
-          banList.push(args[0]);
-          if (server.getUsers().some(u => u.username === args[0])) {
-            server.kick(args[0]);
-          }
-          handled = true;
-        }
-
-        // Unban
-        else if (command === 'unban' && args.length === 1 && banList.includes(args[0])) {
-          sendMessage('<server>', `${capitalize(args[0])} was unbanned by ${capitalize(username)}`);
-          banList = banList.filter(u => u !== args[0]);
-          handled = true;
-        }
-
-        // Ban List
-        else if (command === 'banlist') {
-          if (banList.length === 0) {
-            sendMessage('<server>', 'No users are banned.');
-          } else {
-            sendMessage('<server>', `Banned users: ${enumerate(banList.map(capitalize))}`);
-          }
-          handled = true;
-        }
-
-        // Custom command
-        else if (command in customCommands) {
-          customCommands[command](username, args, (text) => sendMessage('<server>', text));
-          handled = true;
-        }
-
-        if (!handled) {
-          sendMessage(
-            '<server>',
-            `Unknown command by ${capitalize(username)}. Try ${
-              Object
-                .keys(customCommands)
-                .map(c => `/${c}`)
-                .join(', ')
-            }, /kick, /ban, /unban or /banlist`,
-          );
-        }
+    // Ban
+    else if (command === 'ban' && args.length === 1) {
+      sendMessage('<server>', `${capitalize(args[0])} was banned by ${capitalize(username)}`);
+      banList.push(args[0]);
+      if (server.getUsers().some(u => u.username === args[0])) {
+        server.kick(args[0]);
       }
+      handled = true;
+    }
+
+    // Unban
+    else if (command === 'unban' && args.length === 1 && banList.includes(args[0])) {
+      sendMessage('<server>', `${capitalize(args[0])} was unbanned by ${capitalize(username)}`);
+      banList = banList.filter(u => u !== args[0]);
+      handled = true;
+    }
+
+    // Ban List
+    else if (command === 'banlist') {
+      if (banList.length === 0) {
+        sendMessage('<server>', 'No users are banned.', username);
+      } else {
+        sendMessage('<server>', `Banned users: ${enumerate(banList.map(capitalize))}`, username);
+      }
+      handled = true;
+    }
+
+    // Custom command
+    else if (command in customCommands) {
+      customCommands[command](username, args, (text, isExclusive) => sendMessage('<server>', text, isExclusive ? username : undefined));
+      handled = true;
+    }
+
+    if (!handled) {
+      sendMessage(
+        '<server>',
+        `Unknown command. Try ${
+          Object
+            .keys(customCommands)
+            .map(c => `/${c}`)
+            .join(', ')
+        }, /kick, /ban, /unban or /banlist`,
+        username,
+      );
     }
   });
 };

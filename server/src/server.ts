@@ -3,7 +3,7 @@ import { chat } from './chat';
 import { cli } from './cli';
 import { enableUnlinkedKicker } from './unlinked-kicker';
 import { useSyncedValue } from './use/synced-value';
-import { toSyncedValue } from 'board';
+import { capitalize, toSyncedValue } from 'board';
 
 // Setup server
 const props: Props = { /* configure here */ };
@@ -33,24 +33,24 @@ const interval = setInterval(() => {
 chat(server, {
   'time': (_, args, sendServerMessage) => {
     if (args.length === 0) {
-      sendServerMessage(new Date().toTimeString());
+      sendServerMessage(new Date().toTimeString(), true);
     }
   },
   // Add custom commands for setting and getting synced values
-  'set': (_, args, sendServerMessage) => {
+  'set': (username, args, sendServerMessage) => {
     if (args.length === 2) {
       set(args[0], toSyncedValue(args[1]));
-      sendServerMessage(args[0] + ' is ' + get(args[0]).toString());
-    } else {
-      sendServerMessage('Usage /set <key> <value>');
+      sendServerMessage(`${capitalize(username)} set ${args[0]} to ${get(args[0]).toString()}`);
+      return;
     }
+    sendServerMessage('Usage /set <key> <value>', true);
   },
   'get': (_, args, sendServerMessage) => {
     if (args.length === 1) {
-      sendServerMessage(args[0] + ' is ' + get(args[0]).toString());
-    } else {
-      sendServerMessage(`Values: ${getKeys().map(k => k + ' is ' + get(k)).join(', ')}`);
+      sendServerMessage(`${args[0]} is ${get(args[0]).toString()}`, true);
+      return;
     }
+    sendServerMessage(getKeys().map(k => k + ' is ' + get(k)).join(', '), true);
   },
 });
 
