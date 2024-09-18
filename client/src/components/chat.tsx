@@ -89,7 +89,6 @@ export function Chat() {
         <input
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={(e) => {
-            console.info(e.key);
             if (e.key === 'ArrowUp' && lastMessage.length > 0) {
               setMessage(lastMessage);
               e.preventDefault();

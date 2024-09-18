@@ -1,6 +1,7 @@
-import { approximatelyEqual, AxialCoordinate, Vector2 } from 'board';
+import { approximatelyEqual, AxialCoordinate, Random, Vector2 } from 'board';
+import { useSyncedValue } from '@/store/use/synced-value';
 
-export interface Line {
+interface Line {
   fromAnchorId: number;
   toAnchorId: number;
 }
@@ -42,7 +43,7 @@ const TileLine = (props: {
   </>;
 };
 
-export const Tile = (props: {
+const Tile = (props: {
   gridSize: number,
   tileSize: number,
   location: AxialCoordinate,
@@ -89,4 +90,54 @@ export const Tile = (props: {
         />
       </g>)}
   </g>);
+};
+
+const getLines = (index: number): Line[] => {
+  const r = new Random((index + 2).toString());
+  const anchors = r.asShuffledArray([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+  const lines = [];
+  r.next(); // skip one
+  const count = Math.floor(r.next() * 3) + 1;
+  for (let i = 0; i < count; i++) {
+    lines.push({ fromAnchorId: anchors[i], toAnchorId: anchors[i + 6] });
+  }
+  return lines;
+};
+
+export const ExampleBackgroundGraphic = () => {
+  // TODO: resolve that the default value show not show up on first render if a rotation is set
+  const [rotation, setRotation] = useSyncedValue<number>('rotation', 0);
+  const svgSize = new Vector2(310, 310);
+  return <svg
+    className='max-h-[75vh] w-full cursor-pointer rounded-xl'
+    preserveAspectRatio='xMidYMid meet'
+    viewBox={`${-svgSize.x / 2} ${-svgSize.y / 2} ${svgSize.x} ${svgSize.y}`}
+    onClick={(e) => {
+      setRotation((r) => r + 1);
+      e.stopPropagation();
+      e.preventDefault();
+    }}
+  >
+    <g transform={`rotate(${rotation})`} className={'transition-transform duration-700'}>
+      {AxialCoordinate.circle(AxialCoordinate.Zero, 2).map((coordinate, i) => <Tile
+        key={i}
+        tileSize={45}
+        gridSize={55}
+        location={coordinate}
+        rotation={(rotation ?? 0) * 6}
+        lines={getLines(i)}
+        className={'fill-indigo-500 stroke-indigo-600 dark:fill-indigo-600 dark:stroke-indigo-700'}
+      />)}
+    </g>
+    <text
+      x={0}
+      y={0}
+      textAnchor='middle'
+      dominantBaseline='middle'
+      className='fill-slate-50 stroke-indigo-800 font-mono text-8xl font-bold dark:fill-current dark:stroke-indigo-900'
+      strokeWidth={2}
+    >
+      {rotation}
+    </text>
+  </svg>;
 };

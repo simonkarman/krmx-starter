@@ -23,21 +23,36 @@ export function AutoConnectUI() {
     const maxTries = 10;
     function tryConnect() {
       const status = client.getStatus();
-      if (status !== 'initializing' && status !== 'closed') {
-        if (tries > 0 && status !== 'connecting' && status !== 'closing') {
+
+      // Do not try to connect if already connected
+      const isConnected = status !== 'initializing' && status !== 'closed' && status !== 'connecting' && status !== 'closing';
+      if (isConnected) {
+        // If component was not yet reset, reset it now
+        if (tries > 0) {
           tries = 0;
           setIsConnecting(true);
         }
         return;
       }
+
+      // Do not try to connect if already connecting or closing
+      if (status === 'connecting' || status === 'closing') {
+        return;
+      }
+
+      // If we've tried too many times, stop trying
       if (tries >= maxTries) {
         return;
       }
       tries += 1;
+
+      // Try to connect
       client.connect(serverUrl)
         .catch((e: Error) => {
           console.error(`${tries}x: error connecting`, e);
         });
+
+      // If we've tried too many times, set is connecting too false to update the UI
       if (tries >= maxTries) {
         setIsConnecting(false);
       }
@@ -58,8 +73,8 @@ export function AutoConnectUI() {
     };
   }, [serverUrl]);
 
-  // Only render this component if the client is initializing, connecting or closed
-  if (status !== 'initializing' && status !== 'connecting' && status !== 'closed') {
+  // Only render this component if the client is initializing, connecting, closing or closed
+  if (status !== 'initializing' && status !== 'connecting' && status != 'closing' && status !== 'closed') {
     return null;
   }
 

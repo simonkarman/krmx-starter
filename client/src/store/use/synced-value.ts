@@ -1,4 +1,4 @@
-import { isSyncedValueSetMessage, SyncedValueSetMessage } from 'board';
+import { isSyncedValueSetMessage, SyncedValue, SyncedValueSetMessage } from 'board';
 import { createStore } from '@krmx/client-react';
 import { client } from '@/store/krmx';
 
@@ -8,7 +8,7 @@ import { client } from '@/store/krmx';
 const useSyncedValues = createStore(
   client,
   /* the initial internal state */
-  {} as { [key: string]: unknown },
+  {} as { [key: string]: SyncedValue | undefined },
   /* a reducer handling state changes based on incoming messages */
   (state, message) => {
     if (!isSyncedValueSetMessage(message)) {
@@ -37,8 +37,8 @@ export const useSyncedValue = <T extends (number | string | boolean)>(
   value: T,
   setter: ((v: (T) | ((v: T) => T)) => void)
 ] => {
-  const syncedValue = useSyncedValues()[key] as T;
-  const value = syncedValue ?? defaultValue;
+  const syncedValue = useSyncedValues()[key] as T | undefined;
+  const value = syncedValue === undefined ? defaultValue : syncedValue;
   const setValue = (_v: (T) | ((v: T) => T)) => {
     const v = typeof _v === 'function' ? _v(value) : _v;
     if (v !== value) {
