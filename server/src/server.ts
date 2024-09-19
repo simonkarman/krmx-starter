@@ -3,7 +3,7 @@ import { chat } from './chat';
 import { cli } from './cli';
 import { enableUnlinkedKicker } from './unlinked-kicker';
 import { useSyncedValue } from './use/synced-value';
-import { capitalize, alphabetEventSource, toSyncedValue, releaseAlphabet, resetAlphabet } from 'board';
+import { capitalize, alphabetEventSource, toSyncedValue, releaseAlphabet, resetAlphabet, Root } from 'board';
 import { useEventSource } from './use/event-source';
 
 // Setup server
@@ -35,9 +35,11 @@ const interval = setInterval(() => {
 server.on('unlink', (username) => {
   handleEvent(username, releaseAlphabet());
 });
-server.on('leave', (username) => {
+
+// Reset alphabet when the last user leaves
+server.on('leave', () => {
   if (server.getUsers().length === 0) {
-    handleEvent('<server>', resetAlphabet());
+    handleEvent(Root, resetAlphabet());
   }
 });
 

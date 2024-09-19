@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { EventSource } from './use';
 
+export const Root = '<root>';
+
 export const alphabetEventSource = new EventSource({ letters: 'abc', claim: undefined as (string | undefined) });
 export const extendAlphabet = alphabetEventSource.when('extend', z.undefined(), (state, dispatcher) => {
   if (state.claim !== undefined && state.claim !== dispatcher) {
@@ -24,7 +26,7 @@ export const releaseAlphabet = alphabetEventSource.when('release', z.undefined()
   state.claim = undefined;
 });
 export const resetAlphabet = alphabetEventSource.when('reset', z.undefined(), (state, dispatcher) => {
-  if (dispatcher !== '<server>') {
+  if (dispatcher !== Root) {
     throw new Error('alphabet can only be reset by the server');
   }
   state.claim = undefined;

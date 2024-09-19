@@ -1,4 +1,4 @@
 export * from './math';
 export * from './text';
 export * from './use';
-export * from './alphabetEventSource';
+export * from './alphabet-event-source';

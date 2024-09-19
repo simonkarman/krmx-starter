@@ -11,10 +11,12 @@ export default function Page() {
   if (status !== 'linked') {
     return null;
   }
-  return <div className="m-2 space-y-2 sm:mx-4">
+  return <div className="m-2 sm:mx-4">
     <Chat/>
-    <h1 className="text-lg font-bold">Welcome, {capitalize(username!)}!</h1>
-    <p>There is nothing here yet...</p>
+    <div className='space-y-0.5'>
+      <h1 className="text-lg font-bold">Welcome, {capitalize(username!)}!</h1>
+      <p>This is the starter playground for Krmx.</p>
+    </div>
     <ExampleBackgroundGraphic/>
     <ExampleAlphabet/>
   </div>;

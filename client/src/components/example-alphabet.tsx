@@ -6,12 +6,14 @@ export function ExampleAlphabet() {
   const { username } = useClient();
   const alphabet = useAlphabet();
   const anotherUserClaimed = alphabet.claim !== undefined && alphabet.claim !== username;
-  return <>
-    <h2 className="border-b border-gray-100 text-lg font-bold dark:border-gray-800">Alphabet</h2>
-    <p className='text-cyan-600 dark:text-cyan-300'>
-      {alphabet.letters}
-    </p>
-    <div className="my-2 flex flex-wrap items-center gap-3">
+  return <div className='space-y-2'>
+    <div>
+      <h2 className="border-b border-gray-100 font-bold dark:border-gray-800">Alphabet</h2>
+      <p className='text-lg text-cyan-600 dark:text-cyan-300'>
+        {alphabet.letters}
+      </p>
+    </div>
+    <div className="flex flex-wrap items-center gap-3">
       {anotherUserClaimed && <p className="text-sm">Claimed by {capitalize(alphabet.claim!)}</p>}
       <button
         disabled={alphabet.letters.length >= 26 || anotherUserClaimed}
@@ -39,5 +41,5 @@ export function ExampleAlphabet() {
         Release
       </button>}
     </div>
-  </>;
+  </div>;
 }
