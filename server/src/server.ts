@@ -3,7 +3,7 @@ import { chat } from './chat';
 import { cli } from './cli';
 import { enableUnlinkedKicker } from './unlinked-kicker';
 import { useSyncedValue } from './use/synced-value';
-import { capitalize, exampleEventSource, toSyncedValue } from 'board';
+import { capitalize, alphabetEventSource, toSyncedValue, releaseAlphabet, resetAlphabet } from 'board';
 import { useEventSource } from './use/event-source';
 
 // Setup server
@@ -15,7 +15,7 @@ const { get, set, getKeys } = useSyncedValue(server, {
   clearOnEmptyServer: true,
   strictKeyPrefixes: true,
 });
-useEventSource(server, 'example', exampleEventSource, { optimisticSeconds: 10 });
+const { handleEvent } = useEventSource(server, 'alphabet', alphabetEventSource, { optimisticSeconds: 10 });
 
 // Increase rotation by one every 1.3 seconds
 const interval = setInterval(() => {
@@ -30,6 +30,16 @@ const interval = setInterval(() => {
       : 0,
   );
 }, 1300);
+
+// Release alphabet claim everytime a user unlinks
+server.on('unlink', (username) => {
+  handleEvent(username, releaseAlphabet());
+});
+server.on('leave', (username) => {
+  if (server.getUsers().length === 0) {
+    handleEvent('<server>', resetAlphabet());
+  }
+});
 
 // Support chat
 chat(server, {

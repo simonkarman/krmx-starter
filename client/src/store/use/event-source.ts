@@ -1,5 +1,5 @@
 import { client } from '@/store/krmx';
-import { EventSource, EventSourceInstance, EventSourceInstanceProps, exampleEventSource, isEventSourceEvent } from 'board';
+import { EventSource, EventSourceInstance, EventSourceInstanceProps, alphabetEventSource, isEventSourceEvent } from 'board';
 import { Message } from '@krmx/base';
 import { useSyncExternalStore } from 'react';
 
@@ -84,6 +84,6 @@ const supportEventSource = <State>(domain: string, eventSource: EventSource<Stat
 };
 
 export const {
-  use: useExampleEventSource,
-  send: sendExampleEvent,
-} = supportEventSource('example', exampleEventSource, { optimisticSeconds: 10 });
+  use: useAlphabet,
+  send: sendAlphabetEvent,
+} = supportEventSource('alphabet', alphabetEventSource, { optimisticSeconds: 10 });
