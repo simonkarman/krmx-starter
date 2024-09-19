@@ -1,4 +1,4 @@
-import { Vector2 } from '../src';
+import { Vector2 } from '../../src';
 
 describe('Vector2', () => {
   it('should have correct properties', () => {

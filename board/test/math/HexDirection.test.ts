@@ -1,4 +1,4 @@
-import { HexDirection } from '../src';
+import { HexDirection } from '../../src';
 
 describe('HexDirection', () => {
   it('should have correct properties', () => {

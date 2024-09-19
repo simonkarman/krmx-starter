@@ -1,4 +1,4 @@
-import { CubeCoordinate } from '../src';
+import { CubeCoordinate } from '../../src';
 
 describe('CubeCoordinate', () => {
   it('should have correct properties', () => {

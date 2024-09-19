@@ -3,7 +3,8 @@ import { chat } from './chat';
 import { cli } from './cli';
 import { enableUnlinkedKicker } from './unlinked-kicker';
 import { useSyncedValue } from './use/synced-value';
-import { capitalize, toSyncedValue } from 'board';
+import { capitalize, exampleEventSource, toSyncedValue } from 'board';
+import { useEventSource } from './use/event-source';
 
 // Setup server
 const props: Props = { /* configure here */ };
@@ -14,6 +15,7 @@ const { get, set, getKeys } = useSyncedValue(server, {
   clearOnEmptyServer: true,
   strictKeyPrefixes: true,
 });
+useEventSource(server, 'example', exampleEventSource, { optimisticSeconds: 10 });
 
 // Increase rotation by one every 1.3 seconds
 const interval = setInterval(() => {

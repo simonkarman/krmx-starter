@@ -1,4 +1,4 @@
-import { approximatelyEqual } from '../src';
+import { approximatelyEqual } from '../../src';
 
 describe('approximatelyEqual', () => {
   it('should return true for equal values', () => {

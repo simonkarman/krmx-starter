@@ -1,4 +1,4 @@
-import { AxialCoordinate } from '../src';
+import { AxialCoordinate } from '../../src';
 
 describe('AxialCoordinate', () => {
   it('should have correct properties', () => {
