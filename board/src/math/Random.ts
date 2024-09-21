@@ -49,6 +49,14 @@ export class Random {
     return this.next() < 0.5;
   }
 
+  public range(min: number, max = 0): number {
+    if (max === 0) {
+      max = min;
+      min = 0;
+    }
+    return this.next() * (max - min) + min;
+  }
+
   public shuffleArrayInPlace(array: unknown[]): void {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(this.next() * (i + 1));
