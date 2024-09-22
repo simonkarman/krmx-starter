@@ -49,12 +49,17 @@ export class Random {
     return this.next() < 0.5;
   }
 
-  public range(min: number, max = 0): number {
-    if (max === 0) {
-      max = min;
-      min = 0;
+  public rangeInt(minInclusive: number, maxInclusive?: number | undefined): number {
+    if (maxInclusive === undefined) {
+      maxInclusive = minInclusive;
+      minInclusive = 0;
     }
-    return this.next() * (max - min) + min;
+    if (minInclusive > maxInclusive) {
+      [minInclusive, maxInclusive] = [maxInclusive, minInclusive];
+    }
+    minInclusive = Math.floor(minInclusive);
+    maxInclusive = Math.floor(maxInclusive) + 1;
+    return Math.floor(this.next() * (maxInclusive - minInclusive)) + minInclusive;
   }
 
   public shuffleArrayInPlace(array: unknown[]): void {

@@ -1,4 +1,3 @@
-import { Random } from '../math';
 import { Message } from '@krmx/base';
 import { z, ZodAny, ZodAnyDef, ZodType, ZodUndefined } from 'zod';
 import { produce } from 'immer';
@@ -41,7 +40,7 @@ class PatchedStateClientInstance<View> {
 
   set(view: View) {
     this.view = view;
-    this.optimisticView = view;
+    this.optimisticView = structuredClone(view);
     this.optimisticEvents = [];
     this.emit();
   }
@@ -53,7 +52,7 @@ class PatchedStateClientInstance<View> {
 
     // apply the delta to the view
     this.view = patch(this.view, delta) as View; // should have a ViewSchema to and validate after each patch??
-    this.optimisticView = this.view;
+    this.optimisticView = structuredClone(this.view);
 
     // if this resolved an optimistic id, remove optimistic update with the id that is just applied
     if (optimisticId) {
@@ -166,10 +165,14 @@ class PatchedStateServerInstance<State, View> {
     this.subscriptions.forEach(subscription => {
       try {
         subscription((username: string) => {
-          return diff(
+          const delta = diff(
             this.viewMapper(previousState, username),
             this.viewMapper(this.state, username),
           );
+          if (delta === undefined) {
+            return false;
+          }
+          return delta;
         }, optimisticId);
       } catch (err) {
         // silently ignore errors in subscriptions
