@@ -1,7 +1,5 @@
 import { z } from 'zod';
-import { EventSource } from './use';
-
-export const Root = '<root>';
+import { EventSource, Root } from './use';
 
 export const alphabetEventSource = new EventSource({ letters: 'abc', claim: undefined as (string | undefined) });
 export const extendAlphabet = alphabetEventSource.when('extend', z.undefined(), (state, dispatcher) => {

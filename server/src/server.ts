@@ -3,8 +3,13 @@ import { chat } from './chat';
 import { cli } from './cli';
 import { enableUnlinkedKicker } from './unlinked-kicker';
 import { useSyncedValue } from './use/synced-value';
-import { capitalize, alphabetEventSource, toSyncedValue, releaseAlphabet, resetAlphabet, Root } from 'board';
+import {
+  capitalize, toSyncedValue, Root,
+  alphabetEventSource, releaseAlphabet, resetAlphabet,
+  cardGamePatchedState, startCardGame,
+} from 'board';
 import { useEventSource } from './use/event-source';
+import { enumerate } from 'board/dist/src';
 
 // Setup server
 const props: Props = { /* configure here */ };
@@ -16,6 +21,7 @@ const { get, set, getKeys } = useSyncedValue(server, {
   strictKeyPrefixes: true,
 });
 const { handleEvent } = useEventSource(server, 'alphabet', alphabetEventSource, { optimisticSeconds: 10 });
+// const { dispatch } = usePatchedState(server, 'card-game', cardGamePatchedState);
 
 // Increase rotation by one every 1.3 seconds
 const interval = setInterval(() => {
@@ -65,6 +71,21 @@ chat(server, {
       return;
     }
     sendServerMessage(getKeys().map(k => k + ' is ' + get(k)).join(', '), true);
+  },
+  'cards': (_, args, sendServerMessage) => {
+    if (args.length >= 3) {
+      const startConf = {
+        seed: crypto.randomUUID(),
+        players: args.slice(0, -1).map(p => p.toLowerCase()),
+        handSize: parseInt(args[args.length - 1]),
+      };
+      if (!isNaN(startConf.handSize)) {
+        // dispatch(Root, startCardGame(startConf));
+        sendServerMessage(`Card Game started with ${enumerate(startConf.players.map(capitalize))} and hand size ${startConf.handSize}`);
+        return;
+      }
+    }
+    sendServerMessage('Usage /cards <player1> <player2> <player...> <handSize>', true);
   },
 });
 

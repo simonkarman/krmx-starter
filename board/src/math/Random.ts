@@ -76,4 +76,12 @@ export class Random {
     this.shuffleArrayInPlace(newArray);
     return newArray;
   }
+
+  public string(length: number, characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'): string {
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(this.rangeInt(characters.length));
+    }
+    return result;
+  }
 }

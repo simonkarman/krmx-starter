@@ -1,5 +1,4 @@
-import { Random } from '../../src';
-import { PatchedState } from '../../src/use/patched-state';
+import { Random, PatchedState } from '../../src';
 import { z } from 'zod';
 
 describe('Patched State', () => {
@@ -164,4 +163,11 @@ describe('Patched State', () => {
 
     expect(server.view('simon')).toStrictEqual(client.view());
   });
+  // test optimistic for event with no optimistic handler
+  // make errors thrown in server handler available to the user
+  // make errors thrown in optimistic handler available to the user
+  // validate if there are any other places where errors are completely ignored and inaccessible to the user
+  // allow a server handler to already commit any made changes during the handler, that if the handler throws an error, the those prior changes are
+  //   not rolled back
+  // TODO: think about how to handle informing the clients about the mistakes they made (errors thrown by the server handlers)
 });
