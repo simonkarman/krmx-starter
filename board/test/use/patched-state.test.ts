@@ -3,8 +3,61 @@ import { PatchedState } from '../../src/use/patched-state';
 import { z } from 'zod';
 
 describe('Patched State', () => {
-  it('should work with the example from the documentation', () => {
-    // Define example patched state
+  it('should work with the documentation example', () => {
+    const state = new PatchedState(
+      // the initial state of the system
+      { items: [{ owner: 'simon', value: 3 }, { owner: 'lisa', value: 4 }] },
+      // the view mapper function
+      (state, username) => ({
+        yourItems: state.items.filter(item => item.owner === username),
+        totalValue: state.items.reduce((sum, item) => sum + item.value, 0),
+      }),
+    );
+    const inc = state.when(
+      'increment',
+      // payload schema
+      z.number().int().min(1).max(5),
+      // handler (ran server side only)
+      (state, dispatcher, payload) => {
+        state.items.forEach(item => {
+          if (item.owner === dispatcher) {
+            item.value += payload;
+          }
+        });
+      },
+      // optimistic handler (ran client side only)
+      (view, _, payload) => {
+        view.yourItems.forEach(item => {
+          item.value += payload;
+          view.totalValue += payload;
+        });
+      });
+
+    // Spawn a server
+    const server = state.spawnServer();
+
+    // Spawn a client
+    const client = state.spawnClient();
+    client.set(server.view('simon'));
+    server.subscribe((getDeltaFor, optimisticId) => {
+      const delta = getDeltaFor('simon');
+      if (delta === false) {
+        optimisticId && client.releaseOptimistic(optimisticId);
+        return;
+      }
+      client.apply(delta, optimisticId);
+    });
+    const event = inc(2);
+    const optimisticId = client.optimistic('simon', event);
+    if (typeof optimisticId === 'string') {
+      server.dispatch('simon', event, optimisticId);
+    }
+
+    // Expect
+    expect(server.view('simon')).toStrictEqual(client.view());
+  });
+  it('should work with a complex example including optimistic state', () => {
+    // Define patched state
     type LotState = { r: Random, lastLotId: number, lots: { id: string, owner: string, value: number }[], cash: { [username: string]: number } };
     type LotView = { lots: { owner: 'you' | 'someone-else', value: number | '?' }[], cash: { [username: string]: number } };
     const lotState = new PatchedState<LotState, LotView>(
@@ -40,27 +93,25 @@ describe('Patched State', () => {
     serverInstance.dispatch('simon', drawLot());
     serverInstance.dispatch('lisa', drawLot());
 
-    // After some initial messages, start an example client
+    // After some initial messages, start an example client for lisa
     const clientInstance = lotState.spawnClient();
-    serverInstance.onChange((getDeltaFor, optimisticId) => {
-      ['lisa'].forEach(user => {
-        const delta = getDeltaFor(user);
-        if (delta === false) {
-          return;
-        }
-        // should we only send optimistic id for the user that sent it?
-        try {
-          clientInstance.apply(delta, optimisticId); // this happens through Krmx
-        } catch (err) {
-          console.error('error applying delta', err);
-        }
-      });
+    serverInstance.subscribe((getDeltaFor, optimisticId) => {
+      const delta = getDeltaFor('lisa');
+      if (delta === false) {
+        optimisticId && clientInstance.releaseOptimistic(optimisticId);
+        return;
+      }
+      try {
+        clientInstance.apply(delta, optimisticId); // this happens through Krmx
+      } catch (err) {
+        console.error('error applying delta', err);
+      }
     });
     let latestView: LotView = undefined as unknown as LotView;
-    clientInstance.onChange((view) => {
+    clientInstance.subscribe((view) => {
       latestView = view; // this would update external store in react
     });
-    clientInstance.set(structuredClone(serverInstance.view('lisa'))); // this happens through Krmx
+    clientInstance.set(serverInstance.view('lisa')); // this happens through Krmx
 
     // Send some more messages and validate the views
     serverInstance.dispatch('simon', drawLot());
@@ -73,6 +124,44 @@ describe('Patched State', () => {
     serverInstance.dispatch('lisa', noop());
     serverInstance.dispatch('simon', drawLot());
     serverInstance.dispatch('lisa', cashOut('l-34003'));
-    expect(structuredClone(latestView)).toStrictEqual(structuredClone(serverInstance.view('lisa')));
+    expect(latestView).toStrictEqual(serverInstance.view('lisa'));
+    expect(latestView).toStrictEqual(clientInstance.view());
+  });
+  it('should not allow applying or optimistic when set is not called', () => {
+    const state = new PatchedState({ value: 0 }, (state) => state);
+    const inc = state.when('inc', z.undefined(), (state) => { state.value += 1; });
+    const client = state.spawnClient();
+    expect(() => client.apply({})).toThrow();
+    expect(() => client.optimistic('simon', inc())).toThrow();
+    expect(client.view()).toBeUndefined();
+  });
+  it('should mark optimistic updates as executed even if the view is not updated', () => {
+    const state = new PatchedState(
+      { value: 0, view: 1 },
+      (state) => state.view,
+    );
+    // inc only changes the value, which is not part of the view, while it does change the view optimistically
+    // this is to test that the optimistic update is marked as executed even if the view for that client does not show a delta
+    const inc = state.when('inc', z.undefined(), (state) => { state.value += 1; }, (view) => view + 1);
+
+    const server = state.spawnServer();
+    const client = state.spawnClient();
+
+    client.set(server.view('simon')); // send from server to client through Krmx
+    server.subscribe((getDeltaFor, optimisticId) => {
+      const delta = getDeltaFor('simon');
+      if (delta === false) {
+        optimisticId && client.releaseOptimistic(optimisticId); // send from server to client through Krmx
+        return;
+      }
+      client.apply(delta, optimisticId); // send from server to client through Krmx
+    });
+    const event = inc();
+    const optimisticId = client.optimistic('simon', event);
+    if (typeof optimisticId === 'string') {
+      server.dispatch('client', event, optimisticId); // event and optimistic id send from client to server through Krmx
+    }
+
+    expect(server.view('simon')).toStrictEqual(client.view());
   });
 });

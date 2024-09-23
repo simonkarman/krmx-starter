@@ -11,11 +11,19 @@ type ActionDefinitions<State, View> = {
   }
 };
 
-export type ServerSubscription = (getDeltaFor: (username: string) => Delta | false, optimisticId: string | undefined) => void;
-export type ClientSubscription<View> = (view: View) => void;
+type ClientSubscription<View> = (view: View) => void;
 
+/**
+ * A patched state client instance.
+ *
+ * This class is used to manage the view of the state on the client side. It allows for setting the view, applying patches to the view, and managing
+ *  optimistic updates to the view.
+ *
+ * The view is updated through patches, which are deltas between the previous view and the new view. The view also supports optimistic updates, which
+ *  are updates that are applied to the view before the server has confirmed the update to the state.
+ */
 class PatchedStateClientInstance<View> {
-  private view: View;
+  private internalView: View;
   private optimisticView: View;
   private optimisticEvents: { optimisticId: string, dispatcher: string, event: Message }[] = [];
 
@@ -24,68 +32,77 @@ class PatchedStateClientInstance<View> {
   constructor(
     private readonly actionDefinitions: ActionDefinitions<unknown, View>,
   ) {
-    this.view = undefined as View;
+    this.internalView = undefined as View;
     this.optimisticView = undefined as View;
   }
 
   private emit() {
-    this.subscriptions.forEach(sub => {
+    this.subscriptions.forEach(subscription => {
       try {
-        sub(this.optimisticView);
+        subscription(this.view());
       } catch (err) {
         // silently ignore errors in subscriptions
       }
     });
   }
 
+  /**
+   * Set the view of the state. This will also set the optimistic view to the same view and clear any optimistic events. It will immediately notify
+   *  all subscribers of the new view.
+   *
+   * @param view The view to set.
+   */
   set(view: View) {
-    this.view = view;
+    this.internalView = view;
     this.optimisticView = structuredClone(view);
     this.optimisticEvents = [];
     this.emit();
   }
 
-  apply(delta: Delta, optimisticId?: string): void {
-    if (this.view === undefined) {
-      throw new Error('cannot use patched state client instance before the view has been set, invoke clientInstance.set(...) first');
+  private assertSet() {
+    if (this.internalView === undefined) {
+      throw new Error('cannot use client instance if no view has been set, please invoke clientInstance.set(...) first');
     }
+  }
+
+  /**
+   * Apply a delta to the view. If an optimistic id is given, the optimistic event corresponding to that id will be released. Any remaining optimistic
+   *  events are reapplied on top of the view. Then, all subscribers will be notified with the updated view.
+   *
+   * @param delta The delta to apply.
+   * @param optimisticId An optional optimistic id to release.
+   */
+  apply(delta: Delta, optimisticId?: string): void {
+    this.assertSet();
 
     // apply the delta to the view
-    this.view = patch(this.view, delta) as View; // should have a ViewSchema to and validate after each patch??
-    this.optimisticView = structuredClone(this.view);
+    this.internalView = patch(this.internalView, delta) as View; // should have a ViewSchema to and validate after each patch??
 
     // if this resolved an optimistic id, remove optimistic update with the id that is just applied
-    if (optimisticId) {
+    if (optimisticId !== undefined) {
       this.optimisticEvents = this.optimisticEvents.filter(e => e.optimisticId !== optimisticId);
     }
 
-    // apply optimistic events on top of view
-    this.optimisticEvents.forEach(({ dispatcher, event }) => {
-      try {
-        this.optimisticView = produce(this.optimisticView, (_optimisticView: View) => {
-          const actionDefinition = this.actionDefinitions[event.type];
-          if (actionDefinition === undefined || actionDefinition.optimisticHandler === undefined) {
-            return;
-          }
-          const payload = actionDefinition.payloadSchema.safeParse(event.payload);
-          if (!payload.success) {
-            return;
-          }
-          return actionDefinition.optimisticHandler(_optimisticView, dispatcher, payload.data);
-        });
-      } catch (err) {
-        // act as if this failed optimistic handler did not change the view
-      }
-    });
-
-    // notify subscribers
-    this.emit();
+    // reapply optimistic events on top of view
+    this.reapplyOptimisticEvents();
   }
 
+  /**
+   * Apply an optimistic event to the view. If the event type does not exist, or no optimistic handler is used for this event type, this method will
+   *  return false. If the payload is invalid based on the schema of the action definition for this event, this method will return a ZodError. If the
+   *  optimistic handler fails to apply the event to the view, this method will return false. Otherwise, the optimistic event will be applied to the
+   *  optimistic view, and all subscribers will be notified with the updated view. The id of the optimistic event will be returned.
+   *
+   * Only if the optimistic event is confirmed by the server, the optimistic event should be released using the releaseOptimistic method. This happens
+   *  automatically when the apply method is called with the optimistic id.
+   *
+   * @param dispatcher The dispatcher of the event.
+   * @param event The event to dispatch.
+   *
+   * @returns Returns a string with the optimistic id. It can also return false or a ZodError in case the event cannot be applied.
+   */
   optimistic(dispatcher: string, event: Message): string | false | z.ZodError {
-    if (this.view === undefined) {
-      throw new Error('cannot use patched state client instance before the view has been set, invoke clientInstance.set(...) first');
-    }
+    this.assertSet();
 
     // get the action definition corresponding to the dispatched event
     const actionDefinition = this.actionDefinitions[event.type];
@@ -123,11 +140,74 @@ class PatchedStateClientInstance<View> {
     return optimisticId;
   }
 
-  onChange(subscription: ClientSubscription<View>) {
+  private reapplyOptimisticEvents() {
+    this.optimisticView = structuredClone(this.internalView);
+    this.optimisticEvents.forEach(({ dispatcher, event }) => {
+      try {
+        this.optimisticView = produce(this.optimisticView, (_optimisticView: View) => {
+          const actionDefinition = this.actionDefinitions[event.type];
+          if (actionDefinition === undefined || actionDefinition.optimisticHandler === undefined) {
+            return;
+          }
+          const payload = actionDefinition.payloadSchema.safeParse(event.payload);
+          if (!payload.success) {
+            return;
+          }
+          return actionDefinition.optimisticHandler(_optimisticView, dispatcher, payload.data);
+        });
+      } catch (err) {
+        // act as if this failed optimistic handler did not change the view
+      }
+    });
+
+    // notify subscribers
+    this.emit();
+  }
+
+  /**
+   * Release an optimistic event. This will remove the optimistic event with the given id from the list of optimistic events. Then, all remaining
+   *  optimistic events are reapplied on top of the view. All subscribers will be notified with the updated view.
+   * Note: This method will do nothing if the optimistic id does not exist.
+   *
+   * Only use this method if the optimistic event has been confirmed by the server. In normal use cases, the optimistic event should be released
+   *  automatically when the apply method is called with the optimistic id. This method can be used in case an update does not result in a change to
+   *  the view of this specific client.
+   *
+   * @param optimisticId The id of the optimistic event to release.
+   */
+  releaseOptimistic(optimisticId: string) {
+    this.assertSet();
+
+    this.optimisticEvents = this.optimisticEvents.filter(e => e.optimisticId !== optimisticId);
+    this.reapplyOptimisticEvents();
+  }
+
+  /**
+   * Subscribe to updates on the view. The subscriber will be notified with the view whenever the view changes.
+   * Note: The view will always be the optimistic view if there are any optimistic events.
+   *
+   * @param subscription The subscription to add.
+   */
+  subscribe(subscription: ClientSubscription<View>) {
     this.subscriptions.push(subscription);
+  }
+
+  /**
+   * Get the current view.
+   * Note: The view will always be the optimistic view if there are any optimistic events.
+   */
+  view() {
+    return structuredClone(this.optimisticView);
   }
 }
 
+type ServerSubscription = (getDeltaFor: (username: string) => Delta | false, optimisticId: string | undefined) => void;
+
+/**
+ * A patched state server instance.
+ * This class is used to manage the state on the server side. It allows for dispatching events to alter the state and notify all subscribers of the
+ *  changes to the state.
+ */
 class PatchedStateServerInstance<State, View> {
   private subscriptions: ServerSubscription[] = [];
 
@@ -137,6 +217,19 @@ class PatchedStateServerInstance<State, View> {
     private readonly actionDefinitions: ActionDefinitions<State, View>,
   ) {}
 
+  /**
+   * Dispatch an event to the server.  Otherwise, the event will be applied to the state, and all subscribers will be notified
+   *  with the updated view.
+   *
+   * If the handler throws an error processing this event, the event will be considered as if it was successful but did not change the state.
+   *
+   * @param dispatcher The dispatcher of the event.
+   * @param event The event to dispatch.
+   * @param optimisticId An optional optimistic id to release. This is only used to pass to the subscribers.
+   *
+   * @returns `true` -- if the event was applied to the state. `false` -- if the event type does not exist. a ZodError -- if the payload is invalid
+   *  based on the schema of the action definition for this event
+   */
   dispatch(dispatcher: string, event: Message, optimisticId?: string): boolean | z.ZodError {
     // get the action definition corresponding to the dispatched event
     const actionDefinition = this.actionDefinitions[event.type];
@@ -164,10 +257,10 @@ class PatchedStateServerInstance<State, View> {
     // and broadcast changes to the source state
     this.subscriptions.forEach(subscription => {
       try {
-        subscription((username: string) => {
+        subscription((dispatcher: string) => {
           const delta = diff(
-            this.viewMapper(previousState, username),
-            this.viewMapper(this.state, username),
+            this.viewMapper(previousState, dispatcher),
+            this.viewMapper(this.state, dispatcher),
           );
           if (delta === undefined) {
             return false;
@@ -181,34 +274,117 @@ class PatchedStateServerInstance<State, View> {
     return true;
   }
 
-  onChange(subscription: ServerSubscription) {
+  /**
+   * Subscribe to updates on the state. The subscriber will be notified with a method to get the delta between the previous view and the new view of a
+   *  specific dispatcher. The subscriber will also be notified with the optimistic id that was passed to the dispatch method.
+   *
+   * Note: The subscriber should call the method to get the delta for a specific dispatcher. That method returns false if there is no delta, in that
+   *  case the subscriber should release the optimistic id manually using client.releaseOptimistic(optimisticId). If the method returns a delta, then
+   *  the subscriber should apply the delta to the client including the optimistic id.
+   *
+   * @param subscription The subscription to add.
+   */
+  subscribe(subscription: ServerSubscription) {
     this.subscriptions.push(subscription);
   }
 
-  view(username: string) {
-    return this.viewMapper(this.state, username);
+  /**
+   * Get the view of the state for a specific dispatcher.
+   *
+   * @param dispatcher The dispatcher to get the view for.
+   */
+  view(dispatcher: string) {
+    return structuredClone(this.viewMapper(this.state, dispatcher));
   }
 }
 
+/**
+ * A Patched State represents a typesafe state and individual (possibly unique) views on top of that state, including the corresponding actions that
+ *  can be taken to alter the original state and trigger updates on the views. The views are updated through patches, which are deltas between the
+ *  previous view and the new view. The views also support optimistic updates, which are updates that are applied to the view before the server
+ *  has confirmed the update to the state.
+ *
+ * Type safety is guaranteed using Zod, to safely mutate the views during optimistic updates Immer is used.
+ *
+ * Note: Keep in mind that the view should be safe to JSON decode and encode. Only use primitives, don't use classes, functions, or other complex
+ *  types.
+ *
+ * Example usage
+ * ```ts
+ * const state = new PatchedState(
+ *   // the initial state of the system
+ *   { items: [{ owner: 'simon', value: 3 }, { owner: 'lisa', value: 4 }] },
+ *   // the view mapper function
+ *   (state, username) => ({
+ *     yourItems: state.items.filter(item => item.owner === username),
+ *     totalValue: state.items.reduce((sum, item) => sum + item.value, 0),
+ *   }),
+ * );
+ * const inc = state.when(
+ *   'increment',
+ *   // payload schema
+ *   z.number().int().min(1).max(5),
+ *   // handler (ran server side only)
+ *   (state, dispatcher, payload) => {
+ *     state.items.forEach(item => {
+ *       if (item.owner === dispatcher) {
+ *         item.value += payload;
+ *       }
+ *     });
+ *   },
+ *   // optimistic handler (ran client side only)
+ *   (view, _, payload) => {
+ *     view.yourItems.forEach(item => {
+ *       item.value += payload;
+ *       view.totalValue += payload;
+ *     });
+ *   });
+ *
+ * // Spawn a server
+ * const server = state.spawnServer();
+ *
+ * // Spawn a client
+ * const client = state.spawnClient();
+ * client.set(server.view('simon'));
+ * server.subscribe((getDeltaFor, optimisticId) => {
+ *   const delta = getDeltaFor('simon');
+ *   if (delta === false) {
+ *     optimisticId && client.releaseOptimistic(optimisticId);
+ *     return;
+ *   }
+ *   client.apply(delta, optimisticId);
+ * });
+ * const event = inc(2);
+ * const optimisticId = client.optimistic('simon', event);
+ * if (typeof optimisticId === 'string') {
+ *   server.dispatch('simon', event, optimisticId);
+ * }
+ *
+ * // Expect
+ * // server.view('simon') === client.view();
+ * ```
+ *
+ * Check the PatchedStateServerInstance, PatchedStateClientInstance and the tests for more examples.
+ */
 export class PatchedState<State, View> {
   private actionDefinitions: ActionDefinitions<State, View> = {};
+  private immutable = false;
 
   /**
-   * Create a new patched state.
-   *  State only lives on server, clients will receive a view on this state and can send actions to try to alter the server
-   *  state. Clients will receive updates on their view on the state in the form of a delta.
+   * Creates a new patched state.
+   *  State only lives on server, clients will receive a view on this state and can send actions to try to alter the server state. Clients will
+   *   receive updates on their view on the state in the form of a delta.
    *
    * Note: Keep in mind that the view should be safe to JSON decode and encode. Only use primitives, don't use classes, functions, or other complex
    *  types.
    *
    * @param initialState The initial state.
    * @param viewMapper A function that maps the state to a view. This function will be called for each client whenever the state changes, and the
-   *  changes from the previous view to the new view will be sent to the client in the form of a delta. It will also be called once for each client
-   *  without a username to get the initial view.
+   *  changes from the previous view to the new view will be sent to the client in the form of a delta.
    */
   constructor(
     public readonly initialState: State,
-    private readonly viewMapper: (state: State, username?: string) => View,
+    private readonly viewMapper: (state: State, username: string) => View,
   ) {}
 
   /**
@@ -234,6 +410,12 @@ export class PatchedState<State, View> {
     PayloadSchema extends ZodUndefined
       ? () => { type: Type, payload: undefined }
       : (payload: z.infer<PayloadSchema>) => { type: Type, payload: z.infer<PayloadSchema> } {
+    // check if an event type is added after the server or client is spawned
+    if (this.immutable) {
+      throw new Error('cannot add new event types after spawning a server or client');
+    }
+
+    // check if the type is already in use
     if (this.actionDefinitions[type] !== undefined) {
       throw new Error(`event type ${type} is already in use`);
     }
@@ -245,11 +427,19 @@ export class PatchedState<State, View> {
     return (payload) => ({ type, payload });
   }
 
-  spawnServer() {
+  /**
+   * Spawns a new server instance.
+   */
+  spawnServer(): PatchedStateServerInstance<State, View> {
+    this.immutable = true;
     return new PatchedStateServerInstance<State, View>(this.initialState, this.viewMapper, this.actionDefinitions);
   }
 
-  spawnClient() {
+  /**
+   * Spawns a new client instance.
+   */
+  spawnClient(): PatchedStateClientInstance<View> {
+    this.immutable = true;
     return new PatchedStateClientInstance<View>(this.actionDefinitions);
   }
 }
