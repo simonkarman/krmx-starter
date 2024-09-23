@@ -14,6 +14,77 @@ type ActionDefinitions<State, View> = {
 type ClientSubscription<View> = (view: View) => void;
 
 /**
+ * A PatchedStatePatchEvent is a message that represents an event that has been dispatched to a PatchedStateClientInstance.
+ */
+export interface PatchedStatePatchEvent {
+  type: 'ps/patch',
+  payload: { domain: string, delta: Delta, optimisticId?: string | undefined },
+}
+
+/**
+ * Verify that a message is a PatchedStatePatchEvent.
+ *
+ * @param message The message to check.
+ */
+export const isPatchedStatePatchEvent = (message: Message): message is PatchedStatePatchEvent => {
+  return message.type === 'ps/patch'
+    && typeof message.payload === 'object'
+    && message.payload !== null
+    && 'domain' in message.payload
+    && typeof message.payload.domain === 'string'
+    && 'delta' in message.payload
+    && typeof message.payload.delta === 'object'
+    && message.payload.delta !== null
+    && 'optimisticId' in message.payload
+    && (message.payload.optimisticId === undefined || typeof message.payload.optimisticId === 'string');
+};
+
+/**
+ * A PatchedStateSetEvent is a message that represents an event that sets the view directly in a PatchedStateClientInstance.
+ */
+export interface PatchedStateSetEvent<View>{
+  type: 'ps/set',
+  payload: { domain: string, view: View },
+}
+
+/**
+ * Verify that a message is a PatchedStatePatchEvent.
+ *
+ * @param message The message to check.
+ */
+export const isPatchedStateSetEvent = <View>(message: Message): message is PatchedStateSetEvent<View> => {
+  return message.type === 'ps/set'
+    && typeof message.payload === 'object'
+    && message.payload !== null
+    && 'domain' in message.payload
+    && typeof message.payload.domain === 'string'
+    && 'view' in message.payload;
+};
+
+/**
+ * A PatchedStateReleaseEvent is a message that represents an event that releases an optimistic event in a PatchedStateClientInstance.
+ */
+export interface PatchedStateReleaseEvent{
+  type: 'ps/release',
+  payload: { domain: string, optimisticId: string },
+}
+
+/**
+ * Verify that a message is a PatchedStateReleaseEvent.
+ *
+ * @param message The message to check.
+ */
+export const isPatchedStateReleaseEvent = (message: Message): message is PatchedStateReleaseEvent => {
+  return message.type === 'ps/release'
+    && typeof message.payload === 'object'
+    && message.payload !== null
+    && 'domain' in message.payload
+    && typeof message.payload.domain === 'string'
+    && 'optimisticId' in message.payload
+    && typeof message.payload.optimisticId === 'string';
+};
+
+/**
  * A patched state client instance.
  *
  * This class is used to manage the view of the state on the client side. It allows for setting the view, applying patches to the view, and managing

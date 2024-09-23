@@ -170,4 +170,5 @@ describe('Patched State', () => {
   // allow a server handler to already commit any made changes during the handler, that if the handler throws an error, the those prior changes are
   //   not rolled back
   // TODO: think about how to handle informing the clients about the mistakes they made (errors thrown by the server handlers)
+  // TODO: add support for unsubscribe and use this in client and server implentations
 });

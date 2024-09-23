@@ -105,7 +105,7 @@ const getLines = (index: number): Line[] => {
 };
 
 export const ExampleBackgroundGraphic = () => {
-  // TODO: resolve that the default value show not show up on first render if a rotation is set
+  // TODO: resolve that the default value does not show up on first render if a rotation is already set on the server
   const [rotation, setRotation] = useSyncedValue<number>('rotation', 0);
   const svgSize = new Vector2(310, 310);
   return <svg

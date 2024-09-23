@@ -1,4 +1,4 @@
-import { createServer, Props } from '@krmx/server';
+import { createServer, Props, Server } from '@krmx/server';
 import { chat } from './chat';
 import { cli } from './cli';
 import { enableUnlinkedKicker } from './unlinked-kicker';
@@ -10,6 +10,7 @@ import {
 } from 'board';
 import { useEventSource } from './use/event-source';
 import { enumerate } from 'board/dist/src';
+import { usePatchedState } from './use/patched-state';
 
 // Setup server
 const props: Props = { /* configure here */ };
@@ -21,7 +22,7 @@ const { get, set, getKeys } = useSyncedValue(server, {
   strictKeyPrefixes: true,
 });
 const { handleEvent } = useEventSource(server, 'alphabet', alphabetEventSource, { optimisticSeconds: 10 });
-// const { dispatch } = usePatchedState(server, 'card-game', cardGamePatchedState);
+const { dispatch } = usePatchedState(server, 'card-game', cardGamePatchedState);
 
 // Increase rotation by one every 1.3 seconds
 const interval = setInterval(() => {
@@ -35,7 +36,7 @@ const interval = setInterval(() => {
       ? rotation + 1
       : 0,
   );
-}, 1300);
+}, 130_000);
 
 // Release alphabet claim everytime a user unlinks
 server.on('unlink', (username) => {
@@ -80,7 +81,11 @@ chat(server, {
         handSize: parseInt(args[args.length - 1]),
       };
       if (!isNaN(startConf.handSize)) {
-        // dispatch(Root, startCardGame(startConf));
+        const success = dispatch(Root, startCardGame(startConf));
+        if (success !== true) {
+          sendServerMessage(`Failed to start Card Game: ${success}`, true);
+          return;
+        }
         sendServerMessage(`Card Game started with ${enumerate(startConf.players.map(capitalize))} and hand size ${startConf.handSize}`);
         return;
       }

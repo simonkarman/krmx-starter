@@ -13,7 +13,7 @@ export const supportEventSource = <State>(client: Client, domain: string, eventS
   if (client.getStatus() === 'linked') {
     throw new Error(
       'supportEventSource cannot be called with a client that is already linked to a user, as messages sent after linking but prior '
-      + 'to the store being created would be lost.',
+      + 'to the event source being created would be lost.',
     );
   }
 
@@ -61,6 +61,7 @@ export const supportEventSource = <State>(client: Client, domain: string, eventS
   });
 
   const send = (event: Message) => {
+    // TODO: Should we only send when client is linked?
     const result = instance.dispatch(client.getUsername() || 'self', event, true);
     if (result !== true) {
       return result;

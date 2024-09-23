@@ -2,12 +2,13 @@
 
 import { Chat } from '@/components/chat';
 import { ExampleBackgroundGraphic } from '@/components/example-background-graphic';
-import { useClient } from '@/store/krmx';
+import { useCardGame, useClient } from '@/store/krmx';
 import { capitalize } from 'board';
 import { ExampleAlphabet } from '@/components/example-alphabet';
 
 export default function Page() {
   const { status, username } = useClient();
+  const view = useCardGame();
   if (status !== 'linked') {
     return null;
   }
@@ -19,5 +20,7 @@ export default function Page() {
     </div>
     <ExampleBackgroundGraphic/>
     <ExampleAlphabet/>
+    <h2>Card Game</h2>
+    <pre>{JSON.stringify(view, null, 2)}</pre>
   </div>;
 }

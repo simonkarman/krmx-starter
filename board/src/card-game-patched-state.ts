@@ -5,7 +5,7 @@ import { Random } from './math';
 import { z } from 'zod';
 
 const suits = ['♠', '♣', '♥', '♦'] as const;
-const ranks = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'] as const;
+const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'] as const;
 type Card = { id: string, suit: typeof suits[number], rank: typeof ranks[number] };
 
 export const cardGamePatchedState = new PatchedState(
