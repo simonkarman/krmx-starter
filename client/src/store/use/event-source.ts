@@ -1,14 +1,12 @@
-import { client } from '@/store/krmx';
-import { EventSource, EventSourceInstance, EventSourceInstanceProps, alphabetEventSource, isEventSourceEvent } from 'board';
+import { EventSource, EventSourceInstance, EventSourceInstanceProps, isEventSourceEvent } from 'board';
 import { Message } from '@krmx/base';
 import { useSyncExternalStore } from 'react';
-
-type Listener = () => void;
+import { Client } from '@krmx/client';
 
 /**
  * Create a store for an event source.
  */
-const supportEventSource = <State>(domain: string, eventSource: EventSource<State>, props: EventSourceInstanceProps): {
+export const supportEventSource = <State>(client: Client, domain: string, eventSource: EventSource<State>, props: EventSourceInstanceProps): {
   use: () => State,
   send: (message: Message) => ReturnType<EventSourceInstance<State>['dispatch']>,
 } => {
@@ -25,6 +23,7 @@ const supportEventSource = <State>(domain: string, eventSource: EventSource<Stat
   instance.onOptimisticChange(s => { state = s; });
 
   // Create listeners
+  type Listener = () => void;
   let listeners: Listener[] = [];
   function subscribe(listener: Listener) {
     listeners = [...listeners, listener];
@@ -82,8 +81,3 @@ const supportEventSource = <State>(domain: string, eventSource: EventSource<Stat
     send,
   };
 };
-
-export const {
-  use: useAlphabet,
-  send: sendAlphabetEvent,
-} = supportEventSource('alphabet', alphabetEventSource, { optimisticSeconds: 10 });

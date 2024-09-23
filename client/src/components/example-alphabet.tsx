@@ -1,4 +1,4 @@
-import { sendAlphabetEvent, useAlphabet } from '@/store/use/event-source';
+import { sendAlphabetEvent, useAlphabet } from '@/store/krmx';
 import { useClient } from '@/store/krmx';
 import { capitalize, claimAlphabet, extendAlphabet, releaseAlphabet } from 'board';
 
