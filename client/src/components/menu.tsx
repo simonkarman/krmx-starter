@@ -18,7 +18,9 @@ export function Menu(props: { showOthers?: boolean }) {
     return null;
   }
 
-  return <div className="flex items-center gap-3 border-b border-slate-200 bg-slate-100 dark:border-slate-600 dark:bg-slate-800">
+  return <div
+    className="fixed inset-x-0 top-0 z-40 flex items-center gap-3 border-b border-slate-200 bg-slate-100 dark:border-slate-600 dark:bg-slate-800"
+  >
     <p className="border-r border-slate-200 px-3 py-0.5 dark:border-slate-700">
       <strong><span className="text-sm">👤</span> {capitalize(username!)}</strong>
     </p>
@@ -40,7 +42,7 @@ export function Menu(props: { showOthers?: boolean }) {
     }
     {showLeave && <div
       ref={backgroundRef}
-      className="absolute inset-0 z-10 flex items-center justify-center bg-[rgba(0,0,0,0.6)] px-2"
+      className="fixed inset-0 z-10 flex items-center justify-center bg-[rgba(0,0,0,0.6)] px-2"
       onClick={(e) => {
         if (e.target === backgroundRef.current) {
           setShowLeave(false);

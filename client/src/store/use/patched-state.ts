@@ -4,7 +4,7 @@
 //  state. Clients will receive updates on their view on the state in the form of JSON patches.
 
 import { Client } from '@krmx/client';
-import { isPatchedStatePatchEvent, isPatchedStateReleaseEvent, isPatchedStateSetEvent, PatchedState } from 'board';
+import { isPatchedStatePatchEvent, isPatchedStateReleaseEvent, isPatchedStateSetEvent, PatchedState, PatchedStateActionEvent } from 'board';
 import { Message } from '@krmx/base';
 import { useSyncExternalStore } from 'react';
 
@@ -62,13 +62,14 @@ export const supportPatchedState = <View>(client: Client, domain: string, patche
     else if (isPatchedStatePatchEvent(message) && message.payload.domain === domain) {
       try {
         instance.apply(message.payload.delta, message.payload.optimisticId);
+        emit();
       } catch (e) {
         console.error('error while applying patch', e, message);
       }
-      emit();
     }
     // Handle release event
     else if (isPatchedStateReleaseEvent(message) && message.payload.domain === domain) {
+      console.info('Releasing optimistic', message.payload.optimisticId);
       instance.releaseOptimistic(message.payload.optimisticId);
       emit();
     }
@@ -77,10 +78,19 @@ export const supportPatchedState = <View>(client: Client, domain: string, patche
   const send = (event: Message) => {
     // TODO: Should we only send when client is linked?
     const result = instance.optimistic(client.getUsername() || undefinedDispatcher, event);
-    if (typeof result !== 'string') {
-      return result;
+    if (!result.success) {
+      console.error(`Failed to send action ${event.type}`, result);
+      return result.error;
     }
-    client.send({ ...event, type: `${domain}/${event.type}` });
+    console.info(`Sent action ${event.type}`, result);
+    client.send<PatchedStateActionEvent>({
+      type: 'ps/action',
+      payload: {
+        domain,
+        event,
+        optimisticId: result.optimisticId,
+      },
+    });
     emit();
     return true;
   };

@@ -39,7 +39,7 @@ export function Chat() {
   }, []);
 
   return <div
-    className="absolute bottom-0 right-4 min-w-72 space-y-3 rounded-t-lg border border-b-0 border-slate-200 bg-slate-100 px-4 pb-3
+    className="fixed bottom-0 right-4 z-20 min-w-72 space-y-3 rounded-t-lg border border-b-0 border-slate-200 bg-slate-100 px-4 pb-3
                pt-2 dark:border-slate-700 dark:bg-slate-800"
   >
     <div

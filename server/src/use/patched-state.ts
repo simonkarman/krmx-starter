@@ -1,5 +1,5 @@
 import { Server } from '@krmx/server';
-import { PatchedState, PatchedStatePatchEvent, PatchedStateReleaseEvent, PatchedStateSetEvent } from 'board';
+import { isPatchedStateActionEvent, PatchedState, PatchedStatePatchEvent, PatchedStateReleaseEvent, PatchedStateSetEvent } from 'board';
 import { Message } from '@krmx/base';
 
 // usePatchedState
@@ -48,7 +48,26 @@ export const usePatchedState = <View>(
       },
     });
   });
+  const dispatch = (dispatcher: string, event: Message, optimisticId?: string) => {
+    const result = instance.dispatch(dispatcher, event, optimisticId);
+    if (!result.success && optimisticId) {
+      server.send<PatchedStateReleaseEvent>(dispatcher, {
+        type: 'ps/release',
+        payload: { domain, optimisticId },
+      });
+    }
+    return result;
+  };
+  server.on('message', (username, message) => {
+    // uncomment to simulate bad network
+    // const startTime = Date.now();
+    // while (Date.now() - startTime < 1000) { /*wait*/}
+
+    if (isPatchedStateActionEvent(message) && message.payload.domain === domain) {
+      dispatch(username, message.payload.event, message.payload.optimisticId);
+    }
+  });
   return {
-    dispatch: (dispatcher: string, event: Message) => instance.dispatch(dispatcher, event),
+    dispatch,
   };
 };

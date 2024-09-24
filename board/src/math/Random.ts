@@ -80,7 +80,7 @@ export class Random {
   public string(length: number, characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'): string {
     let result = '';
     for (let i = 0; i < length; i++) {
-      result += characters.charAt(this.rangeInt(characters.length));
+      result += characters.charAt(this.rangeInt(characters.length - 1));
     }
     return result;
   }

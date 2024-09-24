@@ -4,9 +4,11 @@ import { PatchedState, Root } from './use';
 import { Random } from './math';
 import { z } from 'zod';
 
-const suits = ['♠', '♣', '♥', '♦'] as const;
-const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'] as const;
-type Card = { id: string, suit: typeof suits[number], rank: typeof ranks[number] };
+export const suits = ['♠', '♣', '♥', '♦'] as const;
+export const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'] as const;
+export type Suit = typeof suits[number];
+export type Rank = typeof ranks[number];
+type Card = { id: string, suit: Suit, rank: Rank };
 
 export const cardGamePatchedState = new PatchedState(
   {
@@ -21,7 +23,7 @@ export const cardGamePatchedState = new PatchedState(
   (state, username) => ({
     finishers: state.finishers,
     order: state.order,
-    turn: state.turn,
+    turn: state.turn as false | number,
     deckSize: state.deck.length,
     pile: state.pile,
     hands: Object.entries(state.hands).map(([username, hand]) => ({ username, handSize: hand.length })),
@@ -41,6 +43,7 @@ export const startCardGame = cardGamePatchedState.when('start', startGamePayload
 
   // Set the random seed and shuffle the order of the players
   state.r = new Random(payload.seed);
+  state.finishers = [];
   state.order = state.r.asShuffledArray(payload.players);
   state.turn = 0;
 
@@ -82,6 +85,10 @@ export const drawCard = cardGamePatchedState.when('draw', z.undefined(), (state,
 
   // End the turn
   state.turn = (state.turn + 1) % state.order.length;
+}, (view) => {
+  view.turn = false;
+  view.deckSize -= 1;
+  view.hand.push({ id: `c?${view.hand.length}`, suit: '?', rank: '?' } as unknown as Card);
 });
 
 export const playCard = cardGamePatchedState.when('play', z.string().startsWith('c').length(13), (state, dispatcher, cardId) => {
@@ -137,4 +144,6 @@ export const playCard = cardGamePatchedState.when('play', z.string().startsWith(
     // simply move to the next player
     state.turn = (state.turn + 1) % state.order.length;
   }
+}, (view) => {
+  view.turn = false;
 });

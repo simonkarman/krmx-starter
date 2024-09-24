@@ -1,5 +1,6 @@
 import { Random, PatchedState } from '../../src';
 import { z } from 'zod';
+import { patch } from 'jsondiffpatch';
 
 describe('Patched State', () => {
   it('should work with the documentation example', () => {
@@ -46,10 +47,15 @@ describe('Patched State', () => {
       }
       client.apply(delta, optimisticId);
     });
+
+    // Dispatch an event
     const event = inc(2);
-    const optimisticId = client.optimistic('simon', event);
-    if (typeof optimisticId === 'string') {
-      server.dispatch('simon', event, optimisticId);
+    const clientResult = client.optimistic('simon', event);
+    if (clientResult.success) {
+      const serverResult = server.dispatch('simon', event, clientResult.optimisticId);
+      if (!serverResult.success && clientResult.optimisticId) {
+        client.releaseOptimistic(clientResult.optimisticId);
+      }
     }
 
     // Expect
@@ -116,10 +122,10 @@ describe('Patched State', () => {
     serverInstance.dispatch('simon', drawLot());
     serverInstance.dispatch('simon', noop());
     const clientEvent = drawLot();
-    const optId = clientInstance.optimistic('lisa', clientEvent);
+    const result = clientInstance.optimistic('lisa', clientEvent);
     expect(latestView.lots.filter(l => l.owner === 'you' && l.value === '?').length).toBe(1);
     serverInstance.dispatch('lisa', drawLot());
-    serverInstance.dispatch('lisa', clientEvent, typeof optId === 'string' ? optId : undefined); // this happens through Krmx
+    serverInstance.dispatch('lisa', clientEvent, result.success ? result.optimisticId : undefined); // this happens through Krmx
     serverInstance.dispatch('lisa', noop());
     serverInstance.dispatch('simon', drawLot());
     serverInstance.dispatch('lisa', cashOut('l-34003'));
@@ -156,9 +162,9 @@ describe('Patched State', () => {
       client.apply(delta, optimisticId); // send from server to client through Krmx
     });
     const event = inc();
-    const optimisticId = client.optimistic('simon', event);
-    if (typeof optimisticId === 'string') {
-      server.dispatch('client', event, optimisticId); // event and optimistic id send from client to server through Krmx
+    const result = client.optimistic('simon', event);
+    if (result.success) {
+      server.dispatch('client', event, result.optimisticId); // event and optimistic id send from client to server through Krmx
     }
 
     expect(server.view('simon')).toStrictEqual(client.view());
@@ -171,4 +177,77 @@ describe('Patched State', () => {
   //   not rolled back
   // TODO: think about how to handle informing the clients about the mistakes they made (errors thrown by the server handlers)
   // TODO: add support for unsubscribe and use this in client and server implentations
+
+  it('validate patching with JSON serialized delta works', () => {
+    const patchEvent = {
+      'type': 'ps/patch',
+      'payload': {
+        'domain': 'card-game',
+        'delta': {
+          'order': { '0': ['lisa'], '1': ['simon'], '_t': 'a' },
+          'deckSize': [0, 41],
+          'pile': {
+            '0': [{ 'id': 'cRcPmYSDTkTBA', 'suit': '♣', 'rank': '9' }],
+            '_t': 'a',
+          },
+          'hands': {
+            '0': [{ 'username': 'simon', 'handSize': 5 }],
+            '1': [{ 'username': 'lisa', 'handSize': 5 }],
+            '_t': 'a',
+          },
+          'hand': {
+            '0': [{ 'id': 'cqOYBFyi5DRq', 'suit': '♠', 'rank': '6' }],
+            '1': [{ 'id': 'ckMrU0D0Ah1e', 'suit': '♦', 'rank': '3' }],
+            '2': [{ 'id': 'cf9wvhBzfmq2H', 'suit': '♣', 'rank': '6' }],
+            '3': [{ 'id': 'c4IBNswUKPaXy', 'suit': '♥', 'rank': 'Q' }],
+            '4': [{ 'id': 'ctBkk2cbdTzD5', 'suit': '♠', 'rank': 'J' }],
+            '_t': 'a',
+          },
+        },
+      },
+    };
+    const current = {
+      'finishers': [],
+      'order': [],
+      'turn': 0,
+      'deckSize': 0,
+      'pile': [],
+      'hands': [],
+      'hand': [],
+    };
+    const set = {
+      'type': 'ps/set',
+      'payload': {
+        'domain': 'card-game',
+        'view': {
+          'finishers': [],
+          'order': [],
+          'turn': 0,
+          'deckSize': 0,
+          'pile': [],
+          'hands': [],
+          'hand': [],
+        },
+      },
+    };
+    expect(set.payload.view).toStrictEqual(current);
+    expect(patch(current, patchEvent.payload.delta)).toStrictEqual({
+      finishers: [],
+      order: [ 'lisa', 'simon' ],
+      turn: 0,
+      deckSize: 41,
+      pile: [ { id: 'cRcPmYSDTkTBA', suit: '♣', rank: '9' } ],
+      hands: [
+        { username: 'simon', handSize: 5 },
+        { username: 'lisa', handSize: 5 },
+      ],
+      hand: [
+        { id: 'cqOYBFyi5DRq', suit: '♠', rank: '6' },
+        { id: 'ckMrU0D0Ah1e', suit: '♦', rank: '3' },
+        { id: 'cf9wvhBzfmq2H', suit: '♣', rank: '6' },
+        { id: 'c4IBNswUKPaXy', suit: '♥', rank: 'Q' },
+        { id: 'ctBkk2cbdTzD5', suit: '♠', rank: 'J' },
+      ],
+    });
+  });
 });

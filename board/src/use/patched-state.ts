@@ -35,8 +35,10 @@ export const isPatchedStatePatchEvent = (message: Message): message is PatchedSt
     && 'delta' in message.payload
     && typeof message.payload.delta === 'object'
     && message.payload.delta !== null
-    && 'optimisticId' in message.payload
-    && (message.payload.optimisticId === undefined || typeof message.payload.optimisticId === 'string');
+    && (
+      ('optimisticId' in message.payload && (typeof message.payload.optimisticId === 'string' || typeof message.payload.optimisticId === 'undefined'))
+      || !('optimisticId' in message.payload)
+    );
 };
 
 /**
@@ -64,7 +66,7 @@ export const isPatchedStateSetEvent = <View>(message: Message): message is Patch
 /**
  * A PatchedStateReleaseEvent is a message that represents an event that releases an optimistic event in a PatchedStateClientInstance.
  */
-export interface PatchedStateReleaseEvent{
+export interface PatchedStateReleaseEvent {
   type: 'ps/release',
   payload: { domain: string, optimisticId: string },
 }
@@ -82,6 +84,36 @@ export const isPatchedStateReleaseEvent = (message: Message): message is Patched
     && typeof message.payload.domain === 'string'
     && 'optimisticId' in message.payload
     && typeof message.payload.optimisticId === 'string';
+};
+
+/**
+ * A PatchedStateActionEvent is a message that represents an event that is sent from the client ot server with an action.
+ */
+export interface PatchedStateActionEvent {
+  type: 'ps/action',
+  payload: { domain: string, event: Message, optimisticId?: string },
+}
+
+/**
+ * Verify that a message is a PatchedStateActionEvent.
+ *
+ * @param message The message to check.
+ */
+export const isPatchedStateActionEvent = (message: Message): message is PatchedStateActionEvent => {
+  return message.type === 'ps/action'
+    && typeof message.payload === 'object'
+    && message.payload !== null
+    && 'domain' in message.payload
+    && typeof message.payload.domain === 'string'
+    && (
+      ('optimisticId' in message.payload && (typeof message.payload.optimisticId === 'string' || typeof message.payload.optimisticId === 'undefined'))
+      || !('optimisticId' in message.payload)
+    )
+    && 'event' in message.payload
+    && typeof message.payload.event === 'object'
+    && message.payload.event !== null
+    && 'type' in message.payload.event
+    && typeof message.payload.event.type === 'string';
 };
 
 /**
@@ -170,22 +202,28 @@ class PatchedStateClientInstance<View> {
    * @param dispatcher The dispatcher of the event.
    * @param event The event to dispatch.
    *
-   * @returns Returns a string with the optimistic id. It can also return false or a ZodError in case the event cannot be applied.
+   * @returns Returns an object with a success prop, that is set to true or false. If true, the event can be sent to the server. If false, the error
+   *  property (string or ZodError) will explain why it failed.
    */
-  optimistic(dispatcher: string, event: Message): string | false | z.ZodError {
+  optimistic(dispatcher: string, event: Message) : { success: true, optimisticId?: string } | { success: false, error: string | z.ZodError } {
     this.assertSet();
 
     // get the action definition corresponding to the dispatched event
     const actionDefinition = this.actionDefinitions[event.type];
     // if it does not exist, or no optimistic handler is used for this event type, skip it
-    if (actionDefinition === undefined || actionDefinition.optimisticHandler === undefined) {
-      return false;
+    if (actionDefinition === undefined) {
+      return { success: false, error: 'event type does not exist' };
     }
 
     // verify the payload is valid based on the schema of the action definition for this event
     const payload = actionDefinition.payloadSchema.safeParse(event.payload);
     if (!payload.success) {
-      return payload.error;
+      return { success: false, error: payload.error };
+    }
+
+    // if no optimistic handler is used for this event type, skip it
+    if (actionDefinition.optimisticHandler === undefined) {
+      return { success: true, optimisticId: undefined };
     }
 
     // apply the optimistic event to the optimistic view
@@ -199,7 +237,7 @@ class PatchedStateClientInstance<View> {
       });
     } catch (err) {
       // act as if this failed optimistic handler did not change the view
-      return false;
+      return { success: true, optimisticId: undefined };
     }
 
     // notify subscribers
@@ -208,7 +246,7 @@ class PatchedStateClientInstance<View> {
     // save (and return the id of) the optimistic event
     const optimisticId = 'opt0-' + crypto.randomUUID();
     this.optimisticEvents.push({ optimisticId, dispatcher, event });
-    return optimisticId;
+    return { success: true, optimisticId };
   }
 
   private reapplyOptimisticEvents() {
@@ -301,17 +339,17 @@ class PatchedStateServerInstance<State, View> {
    * @returns `true` -- if the event was applied to the state. `false` -- if the event type does not exist. a ZodError -- if the payload is invalid
    *  based on the schema of the action definition for this event
    */
-  dispatch(dispatcher: string, event: Message, optimisticId?: string): boolean | z.ZodError {
+  dispatch(dispatcher: string, event: Message, optimisticId?: string): { success: true } | { success: false, error: string | z.ZodError } {
     // get the action definition corresponding to the dispatched event
     const actionDefinition = this.actionDefinitions[event.type];
     if (actionDefinition === undefined) {
-      return false;
+      return { success: false, error: 'event type does not exist' };
     }
 
     // verify the payload is valid based on the schema of the action definition for this event
     const payload = actionDefinition.payloadSchema.safeParse(event.payload);
     if (!payload.success) {
-      return payload.error;
+      return { success: false, error: payload.error };
     }
 
     // let's apply it to the source state (and reset the optimistic state to it)
@@ -322,7 +360,7 @@ class PatchedStateServerInstance<State, View> {
       });
     } catch (err) {
       // act as if this failed handler did not change the state
-      return true;
+      return { success: false, error: 'error while applying event' };
     }
 
     // and broadcast changes to the source state
@@ -342,7 +380,7 @@ class PatchedStateServerInstance<State, View> {
         // silently ignore errors in subscriptions
       }
     });
-    return true;
+    return { success: true };
   }
 
   /**
@@ -425,10 +463,15 @@ class PatchedStateServerInstance<State, View> {
  *   }
  *   client.apply(delta, optimisticId);
  * });
+ *
+ * // Dispatch an event
  * const event = inc(2);
- * const optimisticId = client.optimistic('simon', event);
- * if (typeof optimisticId === 'string') {
- *   server.dispatch('simon', event, optimisticId);
+ * const clientResult = client.optimistic('simon', event);
+ * if (clientResult.success) {
+ *   const serverResult = server.dispatch('simon', event, clientResult.optimisticId);
+ *   if (!serverResult.success && clientResult.optimisticId) {
+ *     client.releaseOptimistic(clientResult.optimisticId);
+ *   }
  * }
  *
  * // Expect
