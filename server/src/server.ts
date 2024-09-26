@@ -4,12 +4,11 @@ import { cli } from './cli';
 import { enableUnlinkedKicker } from './unlinked-kicker';
 import { useSyncedValue } from './use/synced-value';
 import {
-  capitalize, toSyncedValue, Root,
+  capitalize, enumerate, toSyncedValue, Root,
   alphabetEventSource, releaseAlphabet, resetAlphabet,
   cardGamePatchedState, startCardGame,
 } from 'board';
 import { useEventSource } from './use/event-source';
-import { enumerate } from 'board/dist/src';
 import { usePatchedState } from './use/patched-state';
 
 // Setup server
