@@ -102,8 +102,8 @@ export function Chat() {
           placeholder="Message"
           autoFocus
           className="grow rounded-lg border border-slate-300 bg-slate-50 px-2 py-1 text-gray-900 focus:border-orange-600
-                         focus:ring-orange-600 sm:text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white
-                         dark:placeholder:text-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
+                         focus:ring-orange-600 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder:text-gray-400
+                         dark:focus:border-blue-500 dark:focus:ring-blue-500 sm:text-sm"
         />
         <button
           disabled={message.length === 0}

@@ -3,22 +3,29 @@
 import { client, useClient } from '@/store/krmx';
 import { capitalize } from 'board';
 import { useEffect, useRef, useState } from 'react';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export function Menu(props: { showOthers?: boolean }) {
   const { status, username, users } = useClient();
   const [showLeave, setShowLeave] = useState(false);
   const backgroundRef = useRef<HTMLDivElement>(null);
 
+  // Reset the leave dialog when the status of the Krmx client changes
   useEffect(() => {
     setShowLeave(false);
   }, [status]);
+
+  // Don't allow scrolling when the leave dialog is open
+  useEffect(() => {
+    document.body.style.overflow = showLeave ? 'hidden' : 'unset';
+  }, [showLeave]);
 
   // Only render this component if the client is linked and ready to interact
   if (status !== 'linked') {
     return null;
   }
 
-  return <div
+  return <header
     className="fixed inset-x-0 top-0 z-40 flex items-center gap-3 border-b border-slate-200 bg-slate-100 dark:border-slate-600 dark:bg-slate-800"
   >
     <p className="border-r border-slate-200 px-3 py-0.5 dark:border-slate-700">
@@ -32,14 +39,13 @@ export function Menu(props: { showOthers?: boolean }) {
         <span className="text-xs">{isLinked ? '👤' : '🚫'}</span> {capitalize(username)}
       </li>)}
     </ul>
-    {!showLeave &&
-      <button
-        className="pr-2"
-        onClick={() => setShowLeave(true)}
-      >
-        ⏻
-      </button>
-    }
+    <ThemeToggle />
+    <button
+      className="pr-2"
+      onClick={() => setShowLeave(true)}
+    >
+      ⏻
+    </button>
     {showLeave && <div
       ref={backgroundRef}
       className="fixed inset-0 z-10 flex items-center justify-center bg-[rgba(0,0,0,0.6)] px-2"
@@ -77,5 +83,5 @@ export function Menu(props: { showOthers?: boolean }) {
         </div>
       </div>
     </div>}
-  </div>;
+  </header>;
 }

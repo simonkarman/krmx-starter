@@ -89,7 +89,7 @@ export function AutoConnectUI() {
         }
       </p>
       <div className="space-y-6">
-        <div className="md:text-xl dark:text-white">
+        <div className="dark:text-white md:text-xl">
           <p className="font-semibold">
             {isConnecting ? 'Waiting for a connection to the server' : 'Unable to connect to the server'}
           </p>

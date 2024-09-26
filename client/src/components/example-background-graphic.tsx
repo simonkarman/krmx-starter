@@ -38,7 +38,7 @@ const TileLine = (props: {
       className={`transition-colors duration-300 ${props.color}`}
       strokeWidth={props.tileSize * props.strokeWidth}
       strokeOpacity={props.opacity}
-      fill='transparent'
+      fill="transparent"
     />
   </>;
 };
@@ -54,7 +54,7 @@ const Tile = (props: {
   const pixel = props.location.toPixel(props.gridSize);
   const isAligned = approximatelyEqual((props.rotation ?? 0) % 60, 0);
   return (<g
-    className='transition-transform duration-500'
+    className="transition-transform duration-500"
     transform={`translate(${new Vector2(pixel.x, -pixel.y).toSvgString()}) rotate(${props.rotation ?? 0})`}
   >
     <polygon
@@ -109,8 +109,8 @@ export const ExampleBackgroundGraphic = () => {
   const [rotation, setRotation] = useSyncedValue<number>('rotation', 0);
   const svgSize = new Vector2(310, 310);
   return <svg
-    className='max-h-[75vh] w-full cursor-pointer rounded-xl'
-    preserveAspectRatio='xMidYMid meet'
+    className="max-h-[75vh] w-full cursor-pointer rounded-xl"
+    preserveAspectRatio="xMidYMid meet"
     viewBox={`${-svgSize.x / 2} ${-svgSize.y / 2} ${svgSize.x} ${svgSize.y}`}
     onClick={(e) => {
       setRotation((r) => r + 1);
@@ -132,9 +132,9 @@ export const ExampleBackgroundGraphic = () => {
     <text
       x={0}
       y={0}
-      textAnchor='middle'
-      dominantBaseline='middle'
-      className='fill-slate-50 stroke-indigo-800 font-mono text-8xl font-bold dark:fill-current dark:stroke-indigo-900'
+      textAnchor="middle"
+      dominantBaseline="middle"
+      className="fill-slate-50 stroke-indigo-800 font-mono text-8xl font-bold dark:fill-current dark:stroke-indigo-900"
       strokeWidth={2}
     >
       {rotation}

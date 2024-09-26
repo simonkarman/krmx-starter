@@ -41,6 +41,9 @@ rules:
     - error
     - single
     - avoidEscape: true
+  jsx-quotes:
+    - error
+    - prefer-double
   no-trailing-spaces: error
   semi:
     - error

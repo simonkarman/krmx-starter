@@ -1,4 +1,4 @@
-import { createServer, Props, Server } from '@krmx/server';
+import { createServer, Props } from '@krmx/server';
 import { chat } from './chat';
 import { cli } from './cli';
 import { enableUnlinkedKicker } from './unlinked-kicker';
@@ -36,7 +36,7 @@ const interval = setInterval(() => {
       ? rotation + 1
       : 0,
   );
-}, 130_000);
+}, 1_300);
 
 // Release alphabet claim everytime a user unlinks
 server.on('unlink', (username) => {

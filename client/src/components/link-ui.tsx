@@ -28,9 +28,9 @@ export function LinkUI() {
         <img className="mr-3 h-8 w-8" src="/apple-touch-icon.png" alt="logo"/>
         Krmx Starter
       </div>
-      <div className="w-full rounded-lg bg-white shadow sm:max-w-md md:mt-0 dark:border dark:border-slate-700 dark:bg-slate-800">
+      <div className="w-full rounded-lg bg-white shadow dark:border dark:border-slate-700 dark:bg-slate-800 sm:max-w-md md:mt-0">
         <div className="space-y-4 p-6 sm:p-8 md:space-y-6">
-          <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
+          <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white md:text-2xl">
             Join the server
           </h1>
           <form className="space-y-4 md:space-y-6" onSubmit={(e) => {
@@ -46,8 +46,8 @@ export function LinkUI() {
                 type="username" name="username" id="username"
                 placeholder="username" required
                 className="block w-full rounded-lg border border-slate-300 bg-slate-50 p-2.5 text-gray-900 focus:border-orange-600
-                         focus:ring-orange-600 sm:text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white
-                         dark:placeholder:text-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
+                         focus:ring-orange-600 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder:text-gray-400
+                         dark:focus:border-blue-500 dark:focus:ring-blue-500 sm:text-sm"
                 value={linkUsername}
                 onChange={(event) => {
                   setLinkUsername(event.target.value);

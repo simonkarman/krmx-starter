@@ -6,10 +6,10 @@ export function ExampleAlphabet() {
   const { username } = useClient();
   const alphabet = useAlphabet();
   const anotherUserClaimed = alphabet.claim !== undefined && alphabet.claim !== username;
-  return <div className='space-y-2'>
+  return <div className="space-y-2">
     <div>
-      <h2 className="border-b border-gray-100 font-bold dark:border-gray-800">Alphabet</h2>
-      <p className='text-lg text-cyan-600 dark:text-cyan-300'>
+      <h2 className="border-b border-gray-100 pb-1 font-bold dark:border-gray-800">Alphabet</h2>
+      <p className="py-1 text-2xl font-bold text-cyan-600 dark:text-cyan-300">
         {Array.from(alphabet.letters).join(' ')}
       </p>
     </div>

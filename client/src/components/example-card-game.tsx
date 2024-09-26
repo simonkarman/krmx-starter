@@ -44,9 +44,9 @@ const CardFront = (props: { x: number, y: number, suit: Suit, rank: Rank, classN
     <text
       x={cardSize.x / 2}
       y={cardSize.y / 2}
-      textAnchor='middle'
-      dominantBaseline='middle'
-      className={`${isRed ? 'fill-red-600 dark:fill-red-300' : 'fill-gray-800 dark:fill-emerald-300'} pointer-events-none`}
+      textAnchor="middle"
+      dominantBaseline="middle"
+      className={`${isRed ? 'fill-red-600 dark:fill-pink-500' : 'fill-gray-800 dark:fill-slate-200'} pointer-events-none`}
     >
       {props.suit}
       {props.rank}
@@ -57,37 +57,45 @@ const CardFront = (props: { x: number, y: number, suit: Suit, rank: Rank, classN
 export function ExampleCardGame() {
   const { username: self, users } = useClient();
   const [cardCount, setCardCount] = useState(3);
+  const [showRawState, setShowRawState] = useState(false);
   const view = useCardGame();
   const svgSize = { x: 400, y: 300 };
   const viewText = JSON.stringify(view, null, 2).split('\n');
   const columns = 3;
   const myTurn = view.turn !== false && view.order.length > 1 && view.order[view.turn] === self;
   return <>
-    <div className='mt-12 flex items-start justify-between px-3'>
-      <h2 className="text-lg font-bold">Card Game</h2>
-      <button
-        className='rounded bg-blue-500 px-2 py-0.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50'
-        disabled={users.filter(u => u.isLinked).length < 2}
-        onClick={() => {
-          client.send({ type: 'chat/message', payload: `/cards ${users.filter(u => u.isLinked).map(u => u.username).join(' ')} ${cardCount}` });
-          setCardCount(c => {
-            if (c === 10) {
-              return 3;
-            }
-            return c + 1;
-          });
-        }}
-      >
-        (Re-)Start with {cardCount} cards
-      </button>
+    <div className="flex items-end justify-between border-b border-gray-100 pb-1 dark:border-gray-800">
+      <h2 className="font-bold">Card Game</h2>
+      <div className="mb-1 flex items-center gap-3">
+        <button
+          className="rounded bg-gray-200 px-2 py-0.5 text-sm font-bold text-gray-800 hover:bg-gray-300 dark:bg-slate-700 dark:text-gray-200
+                     dark:hover:bg-slate-600"
+          onClick={() => setShowRawState(!showRawState)}
+        >{showRawState ? 'Hide' : 'Show'} State</button>
+        <button
+          className="rounded bg-blue-500 px-2 py-0.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50"
+          disabled={users.filter(u => u.isLinked).length < 2}
+          onClick={() => {
+            client.send({ type: 'chat/message', payload: `/cards ${users.filter(u => u.isLinked).map(u => u.username).join(' ')} ${cardCount}` });
+            setCardCount(c => {
+              if (c === 10) {
+                return 3;
+              }
+              return c + 1;
+            });
+          }}
+        >
+          (Re-)Start with {cardCount} cards
+        </button>
+      </div>
     </div>
     <svg
-      className='mb-5 mt-2 max-h-[75vh] w-full rounded-xl border-slate-200 dark:border-slate-700'
-      preserveAspectRatio='xMidYMid meet'
+      className="mb-5 mt-2 max-h-[75vh] w-full rounded-xl border-slate-200 dark:border-slate-700"
+      preserveAspectRatio="xMidYMid meet"
       viewBox={`${-svgSize.x / 2} ${-svgSize.y / 2} ${svgSize.x} ${svgSize.y}`}
     >
       {view.finishers.length > 0 && <>
-        <text x={0} y={-cardSize.y} textAnchor='middle' dominantBaseline='middle' className='fill-current text-lg font-bold'>
+        <text x={0} y={-cardSize.y} textAnchor="middle" dominantBaseline="middle" className="fill-current text-lg font-bold">
           {capitalize(view.finishers[0])} has won!
           {view.finishers.length > 2 && ` Also, ${enumerate(view.finishers.slice(1, -1))} finished!`}
         </text>
@@ -104,8 +112,8 @@ export function ExampleCardGame() {
           <text
             y={cardSize.y * 0.75 + numberOfCards * 3}
             className={`${ view.turn === i ? 'fill-amber-600 font-bold' : 'fill-current' } text-xs`}
-            textAnchor='middle'
-            dominantBaseline='middle'
+            textAnchor="middle"
+            dominantBaseline="middle"
           >
             {username === self ? 'you' : username} ({numberOfCards})
           </text>
@@ -121,8 +129,8 @@ export function ExampleCardGame() {
         x={-cardSize.x + 3}
         y={4}
         className={'pointer-events-none fill-gray-200 text-xs'}
-        dominantBaseline='middle'
-        textAnchor='middle'
+        dominantBaseline="middle"
+        textAnchor="middle"
       >
         {view.deckSize}x
       </text>
@@ -147,24 +155,26 @@ export function ExampleCardGame() {
       {view.finishers.includes(self!) && <text
         x={0}
         y={svgSize.y / 2 - cardSize.y / 2 - 5}
-        textAnchor='middle'
-        dominantBaseline='middle'
-        className='fill-current text-lg font-bold'
+        textAnchor="middle"
+        dominantBaseline="middle"
+        className="fill-current text-lg font-bold"
       >
         Well done!
       </text>}
     </svg>
-    <div
-      className={'hidden mx-3 flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-slate-100 p-3 ' +
-                 'dark:border-slate-700 dark:bg-slate-800'}
-    >
-      {Array.from({ length: columns }).map((_, i) => {
-        const startColumn = Math.floor(i * viewText.length / columns);
-        const endColumn = Math.floor((i + 1) * viewText.length / columns);
-        return <pre className={`${i === 0 ? '' : 'border-l'} border-slate-200 pl-2 text-xs dark:border-slate-700`} key={i}>
-          {viewText.slice(startColumn, endColumn).join('\n')}
-        </pre>;
-      })}
-    </div>
+    {showRawState && <>
+      <div
+        className={'mx-3 overflow-auto flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white p-3 ' +
+                   'dark:border-slate-700 dark:bg-slate-950'}
+      >
+        {Array.from({ length: columns }).map((_, i) => {
+          const startColumn = Math.floor(i * viewText.length / columns);
+          const endColumn = Math.floor((i + 1) * viewText.length / columns);
+          return <pre className={`${i === 0 ? '' : 'border-l'} border-slate-200 pl-2 text-xs dark:border-slate-700`} key={i}>
+            {viewText.slice(startColumn, endColumn).join('\n')}
+          </pre>;
+        })}
+      </div>
+    </>}
   </>;
 }
