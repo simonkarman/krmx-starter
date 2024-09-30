@@ -1,5 +1,6 @@
-import { client, sendCardGameEvent, useCardGame, useClient } from '@/store/krmx';
-import { capitalize, drawCard, enumerate, playCard, Rank, Suit, Vector2 } from 'board';
+import { client, dispatchCardGameEvent, useCardGame, useClient } from '@/store/krmx';
+import { capitalize, enumerate, Vector2 } from '@krmx/state';
+import { drawCard, playCard, Rank, Suit } from 'board';
 import { useState } from 'react';
 
 const cardSize = new Vector2(40, 56);
@@ -123,7 +124,7 @@ export function ExampleCardGame() {
       <CardBack
         x={-cardSize.x + 3}
         y={3}
-        onClick={myTurn ? () => sendCardGameEvent(drawCard()) : undefined}
+        onClick={myTurn ? () => dispatchCardGameEvent(drawCard()) : undefined}
       />
       <text
         x={-cardSize.x + 3}
@@ -149,7 +150,7 @@ export function ExampleCardGame() {
           suit={card.suit}
           rank={card.rank}
           rotation={rotation}
-          onClick={myTurn ? () => sendCardGameEvent(playCard(card.id)) : undefined}
+          onClick={myTurn ? () => dispatchCardGameEvent(playCard(card.id)) : undefined}
         />;
       })}
       {view.finishers.includes(self!) && <text

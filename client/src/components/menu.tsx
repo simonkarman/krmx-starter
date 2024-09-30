@@ -1,7 +1,7 @@
 'use client';
 
 import { client, useClient } from '@/store/krmx';
-import { capitalize } from 'board';
+import { capitalize } from '@krmx/state';
 import { useEffect, useRef, useState } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
 

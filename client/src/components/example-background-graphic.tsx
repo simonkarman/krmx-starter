@@ -1,5 +1,5 @@
-import { approximatelyEqual, AxialCoordinate, Random, Vector2 } from 'board';
-import { useSyncedValue } from '@/store/use/synced-value';
+import { approximatelyEqual, AxialCoordinate, Random, Vector2 } from '@krmx/state';
+import { useAtom } from '@/store/krmx';
 
 interface Line {
   fromAnchorId: number;
@@ -106,7 +106,7 @@ const getLines = (index: number): Line[] => {
 
 export const ExampleBackgroundGraphic = () => {
   // TODO: resolve that the default value does not show up on first render if a rotation is already set on the server
-  const [rotation, setRotation] = useSyncedValue<number>('rotation', 0);
+  const [rotation, setRotation] = useAtom<number>('rotation', 0);
   const svgSize = new Vector2(310, 310);
   return <svg
     className="max-h-[75vh] w-full cursor-pointer rounded-xl"

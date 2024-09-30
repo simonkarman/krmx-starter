@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@krmx/client-react": "^0.5.4",
+    "@krmx/state": "^0.0.1",
+    "@krmx/state-client-react": "^0.0.1",
     "board": "file:../board",
     "next": "14.2.4",
     "next-themes": "^0.3.0",

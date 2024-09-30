@@ -1,27 +1,25 @@
 import { createServer, Props } from '@krmx/server';
+import { capitalize, enumerate, parseAtom } from '@krmx/state';
 import { chat } from './chat';
 import { cli } from './cli';
 import { enableUnlinkedKicker } from './unlinked-kicker';
-import { useSyncedValue } from './use/synced-value';
 import {
-  capitalize, enumerate, toSyncedValue, Root,
-  alphabetEventSource, releaseAlphabet, resetAlphabet,
-  cardGamePatchedState, startCardGame,
+  alphabetModel, releaseAlphabet, resetAlphabet,
+  Root, cardGameModel, startCardGame,
 } from 'board';
-import { useEventSource } from './use/event-source';
-import { usePatchedState } from './use/patched-state';
+import { registerAtoms, registerStream, registerProjection } from '@krmx/state-server';
 
 // Setup server
 const props: Props = { /* configure here */ };
 const server = createServer(props);
 enableUnlinkedKicker(server);
 cli(server);
-const { get, set, getKeys } = useSyncedValue(server, {
+const { get, set, getKeys } = registerAtoms(server, {
   clearOnEmptyServer: true,
   strictKeyPrefixes: true,
 });
-const { handleEvent } = useEventSource(server, 'alphabet', alphabetEventSource, { optimisticSeconds: 10 });
-const { dispatch } = usePatchedState(server, 'card-game', cardGamePatchedState);
+const { dispatch: dispatchAlphabet } = registerStream(server, 'alphabet', alphabetModel, { optimisticSeconds: 10 });
+const { dispatch: dispatchCardGame } = registerProjection(server, 'card-game', cardGameModel);
 
 // Increase rotation by one every 1.3 seconds
 const interval = setInterval(() => {
@@ -39,13 +37,13 @@ const interval = setInterval(() => {
 
 // Release alphabet claim everytime a user unlinks
 server.on('unlink', (username) => {
-  handleEvent(username, releaseAlphabet());
+  dispatchAlphabet(username, releaseAlphabet());
 });
 
 // Reset alphabet when the last user leaves
 server.on('leave', () => {
   if (server.getUsers().length === 0) {
-    handleEvent(Root, resetAlphabet());
+    dispatchAlphabet(Root, resetAlphabet());
   }
 });
 
@@ -59,7 +57,7 @@ chat(server, {
   // Add custom commands for setting and getting synced values
   'set': (username, args, sendServerMessage) => {
     if (args.length === 2) {
-      set(args[0], toSyncedValue(args[1]));
+      set(args[0], parseAtom(args[1]));
       sendServerMessage(`${capitalize(username)} set ${args[0]} to ${get(args[0]).toString()}`);
       return;
     }
@@ -80,9 +78,9 @@ chat(server, {
         handSize: parseInt(args[args.length - 1]),
       };
       if (!isNaN(startConf.handSize)) {
-        const result = dispatch(Root, startCardGame(startConf));
+        const result = dispatchCardGame(Root, startCardGame(startConf));
         if (!result.success) {
-          sendServerMessage(`Failed to start Card Game: ${result.error.toString()}`, true);
+          sendServerMessage('Failed to start gard game', true);
           return;
         }
         sendServerMessage(`Card Game started with ${enumerate(startConf.players.map(capitalize))} and hand size ${startConf.handSize}`);

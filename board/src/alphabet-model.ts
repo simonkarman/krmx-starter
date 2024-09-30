@@ -1,8 +1,9 @@
 import { z } from 'zod';
-import { EventSource, Root } from './use';
+import { StreamModel } from '@krmx/state';
+import { Root } from './root';
 
-export const alphabetEventSource = new EventSource({ letters: 'abc', claim: undefined as (string | undefined) });
-export const extendAlphabet = alphabetEventSource.when('extend', z.undefined(), (state, dispatcher) => {
+export const alphabetModel = new StreamModel({ letters: 'abc', claim: undefined as (string | undefined) });
+export const extendAlphabet = alphabetModel.when('extend', z.undefined(), (state, dispatcher) => {
   if (state.claim !== undefined && state.claim !== dispatcher) {
     throw new Error('alphabet is not claimed by you');
   }
@@ -11,19 +12,19 @@ export const extendAlphabet = alphabetEventSource.when('extend', z.undefined(), 
   }
   state.letters += String.fromCharCode(state.letters.length + 'a'.charCodeAt(0));
 });
-export const claimAlphabet = alphabetEventSource.when('claim', z.undefined(), (state, dispatcher) => {
+export const claimAlphabet = alphabetModel.when('claim', z.undefined(), (state, dispatcher) => {
   if (state.claim !== undefined) {
     throw new Error('alphabet is already claimed');
   }
   state.claim = dispatcher;
 });
-export const releaseAlphabet = alphabetEventSource.when('release', z.undefined(), (state, dispatcher) => {
+export const releaseAlphabet = alphabetModel.when('release', z.undefined(), (state, dispatcher) => {
   if (state.claim !== dispatcher) {
     throw new Error('alphabet is not claimed by you');
   }
   state.claim = undefined;
 });
-export const resetAlphabet = alphabetEventSource.when('reset', z.undefined(), (state, dispatcher) => {
+export const resetAlphabet = alphabetModel.when('reset', z.undefined(), (state, dispatcher) => {
   if (dispatcher !== Root) {
     throw new Error('alphabet can only be reset by the server');
   }

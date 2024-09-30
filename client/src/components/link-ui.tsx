@@ -2,7 +2,7 @@
 
 import { FullScreenWrapper } from '@/components/full-screen-wrapper';
 import { client, useClient } from '@/store/krmx';
-import { capitalize } from 'board';
+import { capitalize } from '@krmx/state';
 import { useEffect, useState } from 'react';
 
 export function LinkUI() {

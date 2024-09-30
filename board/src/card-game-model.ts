@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-
-import { PatchedState, Root } from './use';
-import { Random } from './math';
 import { z } from 'zod';
+import { ProjectionModel, Random } from '@krmx/state';
+import { Root } from './root';
 
 export const suits = ['♠', '♣', '♥', '♦'] as const;
 export const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'] as const;
@@ -10,7 +9,7 @@ export type Suit = typeof suits[number];
 export type Rank = typeof ranks[number];
 type Card = { id: string, suit: Suit, rank: Rank };
 
-export const cardGamePatchedState = new PatchedState(
+export const cardGameModel = new ProjectionModel(
   {
     r: new Random(''),
     finishers: [] as string[],
@@ -36,7 +35,7 @@ const startGamePayload = z.object({
   players: z.array(z.string()).min(2),
   handSize: z.number().min(3).max(10),
 });
-export const startCardGame = cardGamePatchedState.when('start', startGamePayload, (state, dispatcher, payload) => {
+export const startCardGame = cardGameModel.when('start', startGamePayload, (state, dispatcher, payload) => {
   if (dispatcher !== Root) {
     throw new Error('only the server can start the game');
   }
@@ -63,7 +62,7 @@ export const startCardGame = cardGamePatchedState.when('start', startGamePayload
   state.hands = payload.players.reduce((hands, username) => ({ ...hands, [username]: draw(payload.handSize) }), {});
 });
 
-export const drawCard = cardGamePatchedState.when('draw', z.undefined(), (state, dispatcher) => {
+export const drawCard = cardGameModel.when('draw', z.undefined(), (state, dispatcher) => {
   // Check if it is the dispatcher's turn
   if (!state.order.includes(dispatcher) || dispatcher !== state.order[state.turn]) {
     throw new Error('it is not your turn');
@@ -91,7 +90,7 @@ export const drawCard = cardGamePatchedState.when('draw', z.undefined(), (state,
   view.hand.push({ id: `c?${view.hand.length}`, suit: '?', rank: '?' } as unknown as Card);
 });
 
-export const playCard = cardGamePatchedState.when('play', z.string().startsWith('c').length(13), (state, dispatcher, cardId) => {
+export const playCard = cardGameModel.when('play', z.string().startsWith('c').length(13), (state, dispatcher, cardId) => {
   // Check if it is the dispatcher's turn
   if (!state.order.includes(dispatcher) || dispatcher !== state.order[state.turn]) {
     throw new Error('it is not your turn');

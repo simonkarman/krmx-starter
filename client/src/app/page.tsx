@@ -3,7 +3,7 @@
 import { Chat } from '@/components/chat';
 import { ExampleBackgroundGraphic } from '@/components/example-background-graphic';
 import { useClient } from '@/store/krmx';
-import { capitalize } from 'board';
+import { capitalize } from '@krmx/state';
 import { ExampleAlphabet } from '@/components/example-alphabet';
 import { ExampleCardGame } from '@/components/example-card-game';
 import { useState } from 'react';
@@ -16,16 +16,16 @@ export default function Page() {
     return null;
   }
   const tabs = [
-    { component: <ExampleBackgroundGraphic />, title: 'Synced Value' },
-    { component: <ExampleAlphabet />, title: 'Event Source' },
-    { component: <ExampleCardGame />, title: 'Patched State' },
+    { component: <ExampleBackgroundGraphic />, title: 'Atom Model' },
+    { component: <ExampleAlphabet />, title: 'Stream Model' },
+    { component: <ExampleCardGame />, title: 'Projection Model' },
   ];
 
   return <div className="px-2 pb-16 pt-10 md:mx-4">
     <Chat/>
     <div className="space-y-0.5">
       <h1 className="text-lg font-bold">Welcome, {capitalize(username!)}!</h1>
-      <p>This is the starter playground for Krmx.</p>
+      <p>This is the starter playground for Krmx. Try an example of each model below.</p>
     </div>
     <div className="mb-6 mt-2 flex gap-3">
       {tabs.map((tab, i) => <button

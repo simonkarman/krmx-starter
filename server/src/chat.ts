@@ -1,5 +1,5 @@
 import { Server } from '@krmx/server';
-import { capitalize, enumerate } from 'board';
+import { capitalize, enumerate } from '@krmx/state';
 
 export const chat = (server: Server, customCommands: {[command: string]: (
   username: string,
