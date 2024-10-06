@@ -91,7 +91,7 @@ export function ExampleCardGame() {
       </div>
     </div>
     <svg
-      className="mb-5 mt-2 max-h-[75vh] w-full rounded-xl border-slate-200 dark:border-slate-700"
+      className="mb-5 mt-2 max-h-[75vh] w-full select-none rounded-xl border-slate-200 dark:border-slate-700"
       preserveAspectRatio="xMidYMid meet"
       viewBox={`${-svgSize.x / 2} ${-svgSize.y / 2} ${svgSize.x} ${svgSize.y}`}
     >

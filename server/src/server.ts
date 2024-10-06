@@ -5,7 +5,7 @@ import { cli } from './cli';
 import { enableUnlinkedKicker } from './unlinked-kicker';
 import {
   alphabetModel, releaseAlphabet, resetAlphabet,
-  Root, cardGameModel, startCardGame,
+  Root, cardGameModel, startCardGame, legendOfKeozaModel,
 } from 'board';
 import { registerAtoms, registerStream, registerProjection } from '@krmx/state-server';
 
@@ -16,10 +16,11 @@ enableUnlinkedKicker(server);
 cli(server);
 const { get, set, getKeys } = registerAtoms(server, {
   clearOnEmptyServer: true,
-  strictKeyPrefixes: true,
 });
 const { dispatch: dispatchAlphabet } = registerStream(server, 'alphabet', alphabetModel, { optimisticSeconds: 10 });
 const { dispatch: dispatchCardGame } = registerProjection(server, 'card-game', cardGameModel);
+
+registerProjection(server, 'lok', legendOfKeozaModel);
 
 // Increase rotation by one every 1.3 seconds
 const interval = setInterval(() => {

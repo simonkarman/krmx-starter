@@ -7,6 +7,7 @@ import { capitalize } from '@krmx/state';
 import { ExampleAlphabet } from '@/components/example-alphabet';
 import { ExampleCardGame } from '@/components/example-card-game';
 import { useState } from 'react';
+import { LegendOfKeoza } from '@/components/legend-of-keoza';
 
 export default function Page() {
   const { status, username } = useClient();
@@ -15,10 +16,12 @@ export default function Page() {
   if (status !== 'linked') {
     return null;
   }
+
   const tabs = [
     { component: <ExampleBackgroundGraphic />, title: 'Atom Model' },
     { component: <ExampleAlphabet />, title: 'Stream Model' },
     { component: <ExampleCardGame />, title: 'Projection Model' },
+    { component: <LegendOfKeoza />, title: 'Legend of Keoza' },
   ];
 
   return <div className="px-2 pb-16 pt-10 md:mx-4">

@@ -109,12 +109,11 @@ export const ExampleBackgroundGraphic = () => {
   const [rotation, setRotation] = useAtom<number>('rotation', 0);
   const svgSize = new Vector2(310, 310);
   return <svg
-    className="max-h-[75vh] w-full cursor-pointer rounded-xl"
+    className="max-h-[75vh] w-full cursor-pointer select-none"
     preserveAspectRatio="xMidYMid meet"
     viewBox={`${-svgSize.x / 2} ${-svgSize.y / 2} ${svgSize.x} ${svgSize.y}`}
     onClick={(e) => {
       setRotation((r) => r + 1);
-      e.stopPropagation();
       e.preventDefault();
     }}
   >
@@ -134,7 +133,8 @@ export const ExampleBackgroundGraphic = () => {
       y={0}
       textAnchor="middle"
       dominantBaseline="middle"
-      className="fill-slate-50 stroke-indigo-800 font-mono text-8xl font-bold dark:fill-current dark:stroke-indigo-900"
+      className="pointer-events-none fill-slate-50 stroke-indigo-800 font-mono text-8xl
+                 font-bold dark:fill-current dark:stroke-indigo-900"
       strokeWidth={2}
     >
       {rotation}
