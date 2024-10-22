@@ -23,8 +23,8 @@
     "typescript": "^5.0.2"
   },
   "dependencies": {
-    "@krmx/base": "^0.5.6",
-    "@krmx/state": "^0.0.1",
+    "@krmx/base": "^0.6.3",
+    "@krmx/state": "^0.0.4",
     "immer": "^10.1.1",
     "jsondiffpatch": "0.5.0",
     "zod": "^3.23.8"

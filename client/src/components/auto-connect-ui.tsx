@@ -6,7 +6,15 @@ import { useEffect, useState } from 'react';
 
 export function AutoConnectUI() {
   const { status } = useClient();
-  const [serverUrl] = useState<string>('ws://localhost:8084');
+
+  const [serverUrl, setServerUrl] = useState<string>('ws://localhost:8084');
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const host = window.location.hostname;
+    setServerUrl(`ws://${host}:8084`);
+  }, []);
   const [isConnecting, setIsConnecting] = useState<boolean>(true);
 
   // When the server url changes, disconnect the client from the server

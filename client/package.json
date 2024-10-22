@@ -10,11 +10,11 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@krmx/client-react": "^0.5.4",
-    "@krmx/state": "^0.0.1",
-    "@krmx/state-client-react": "^0.0.1",
+    "@krmx/client-react": "^0.6.3",
+    "@krmx/state": "^0.0.4",
+    "@krmx/state-client-react": "^0.0.4",
     "board": "file:../board",
-    "next": "14.2.4",
+    "next": "14.2.10",
     "next-themes": "^0.3.0",
     "react": "^18",
     "react-dom": "^18"
