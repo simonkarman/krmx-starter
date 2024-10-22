@@ -7,13 +7,13 @@ import { useEffect, useState } from 'react';
 export function AutoConnectUI() {
   const { status } = useClient();
 
-  const [serverUrl, setServerUrl] = useState<string>('ws://localhost:8084');
+  const [serverUrl, setServerUrl] = useState<string>('ws://localhost:8084?version=0.0.2');
   useEffect(() => {
     if (typeof window === 'undefined') {
       return;
     }
     const host = window.location.hostname;
-    setServerUrl(`ws://${host}:8084`);
+    setServerUrl(`ws://${host}:8084?version=0.0.2`);
   }, []);
   const [isConnecting, setIsConnecting] = useState<boolean>(true);
 

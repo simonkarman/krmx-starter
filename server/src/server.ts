@@ -12,6 +12,7 @@ import { registerAtoms, registerStream, registerProjection } from '@krmx/state-s
 // Setup server
 const props: Props = {
   pingIntervalMilliseconds: 3_000,
+  http: { queryParams: { version: '0.0.2' } },
 };
 const server = createServer(props);
 enableUnlinkedKicker(server);

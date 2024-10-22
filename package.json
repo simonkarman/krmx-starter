@@ -1,6 +1,6 @@
 {
   "name": "krmx-starter",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A starter project for an application using [Krmx](https://simonkarman.github.io/krmx) and React.",
   "scripts": {
     "postinstall": "npm run install-all",
