@@ -4,7 +4,6 @@ import { client, useClient } from '@/store/krmx';
 import { capitalize } from '@krmx/state';
 import { useEffect, useRef, useState } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { AnimatedBackground } from '@/components/animated-background';
 
 const PowerSvg = () => <svg className="fill-gray-700 dark:fill-gray-200" width="13" height="13" viewBox="0 0 556.568 556.568">
   <path d="M210.37 133.725V43.434c0-2.264.116-4.501.333-6.708C97.48 66.592 13.985 169.665 13.985 292.27c0 145.969 118.33 264.299 264.298 264.299

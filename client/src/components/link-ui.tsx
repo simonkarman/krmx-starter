@@ -32,8 +32,6 @@ export function LinkUI() {
         duration: 0.3,
         type: 'spring',
         stiffness: 100,
-        when: 'beforeChildren',
-        staggerChildren: 0.1,
       },
     },
   };
@@ -50,6 +48,7 @@ export function LinkUI() {
             x: [0, -2, 0, 2, 0],
             rotateZ: [0, -2, 0, 2, 0],
             transition: {
+              delay: 1,
               duration: 2,
               repeat: Infinity,
               ease: 'easeInOut',
