@@ -64,6 +64,7 @@ export function ExampleCardGame() {
   const viewText = JSON.stringify(view, null, 2).split('\n');
   const columns = 3;
   const myTurn = view.turn !== false && view.order.length > 1 && view.order[view.turn] === self;
+
   return <>
     <div className="flex items-end justify-between border-b border-gray-100 pb-1 dark:border-gray-800">
       <h2 className="font-bold">Card Game</h2>
@@ -72,7 +73,9 @@ export function ExampleCardGame() {
           className="rounded bg-gray-200 px-2 py-0.5 text-sm font-bold text-gray-800 hover:bg-gray-300 dark:bg-slate-700 dark:text-gray-200
                      dark:hover:bg-slate-600"
           onClick={() => setShowRawState(!showRawState)}
-        >{showRawState ? 'Hide' : 'Show'} State</button>
+        >
+          {showRawState ? 'Hide' : 'Show'} State
+        </button>
         <button
           className="rounded bg-blue-500 px-2 py-0.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50"
           disabled={users.filter(u => u.isLinked).length < 2}
@@ -108,11 +111,11 @@ export function ExampleCardGame() {
           transform={`translate(${(i - (view.order.length - 1) / 2) * cardSize.x * 1.5}, ${-svgSize.y / 2 + cardSize.y / 2}) scale(0.7)`}
         >
           {Array.from({ length: numberOfCards }).map((_, j) => {
-            return <CardBack key={j} x={(j - (numberOfCards - 1) / 2) * 3} y={j * 3} />;
+            return <CardBack key={j} x={(j - (numberOfCards - 1) / 2) * 3} y={j * 3}/>;
           })}
           <text
             y={cardSize.y * 0.75 + numberOfCards * 3}
-            className={`${ view.turn === i ? 'fill-amber-600 font-bold' : 'fill-current' } text-xs`}
+            className={`${view.turn === i ? 'fill-amber-600 font-bold' : 'fill-current'} text-xs`}
             textAnchor="middle"
             dominantBaseline="middle"
           >
@@ -120,7 +123,7 @@ export function ExampleCardGame() {
           </text>
         </g>;
       })}
-      {view.deckSize > 1 && <CardBack x={-cardSize.x} y={0} />}
+      {view.deckSize > 1 && <CardBack x={-cardSize.x} y={0}/>}
       <CardBack
         x={-cardSize.x + 3}
         y={3}
@@ -136,7 +139,7 @@ export function ExampleCardGame() {
         {view.deckSize}x
       </text>
       {view.pile.length > 0 &&
-        <CardFront x={cardSize.x - 3} y={0} suit={view.pile[view.pile.length - 1].suit} rank={view.pile[view.pile.length - 1].rank} />
+        <CardFront x={cardSize.x - 3} y={0} suit={view.pile[view.pile.length - 1].suit} rank={view.pile[view.pile.length - 1].rank}/>
       }
       {view.order.length > 0 && view.hand.map((card, i) => {
         const gap = 7 - view.hand.length;
@@ -166,7 +169,7 @@ export function ExampleCardGame() {
     {showRawState && <>
       <div
         className={'mx-3 overflow-auto flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white p-3 ' +
-                   'dark:border-slate-700 dark:bg-slate-950'}
+          'dark:border-slate-700 dark:bg-slate-950'}
       >
         {Array.from({ length: columns }).map((_, i) => {
           const startColumn = Math.floor(i * viewText.length / columns);

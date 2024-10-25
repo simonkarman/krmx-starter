@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { StreamModel } from '@krmx/state';
-import { Root } from './root';
 
 export const alphabetModel = new StreamModel({ letters: 'abc', claim: undefined as (string | undefined) });
 export const extendAlphabet = alphabetModel.when('extend', z.undefined(), (state, dispatcher) => {
@@ -25,9 +24,9 @@ export const releaseAlphabet = alphabetModel.when('release', z.undefined(), (sta
   state.claim = undefined;
 });
 export const resetAlphabet = alphabetModel.when('reset', z.undefined(), (state, dispatcher) => {
-  if (dispatcher !== Root) {
-    throw new Error('alphabet can only be reset by the server');
+  if (state.claim !== dispatcher) {
+    throw new Error('alphabet is not claimed by you');
   }
   state.claim = undefined;
-  state.letters = 'abc';
+  state.letters = 'a';
 });
