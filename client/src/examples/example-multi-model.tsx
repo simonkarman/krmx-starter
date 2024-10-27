@@ -1,6 +1,6 @@
 import { PropsWithChildren, SVGProps, useState } from 'react';
 import { AxialCoordinate, Vector2 } from '@krmx/state';
-import { dispatchLegendOfKeozaEvent, useAtom, useClient, useLegendOfKeoza } from '@/store/krmx';
+import { dispatchHexagonWorldEvent, useAtom, useClient, useHexagonWorld } from '@/store/krmx';
 import { move } from 'board';
 
 // Precompute hexagon corners
@@ -194,8 +194,8 @@ export const DraggableBackground = (props: PropsWithChildren<{ viewBoxSize: Vect
   </>;
 };
 
-export const LegendOfKeoza = () => {
-  const projection = useLegendOfKeoza();
+export const ExampleMultiModel = () => {
+  const projection = useHexagonWorld();
   const viewBoxSize = new Vector2(320, 320);
   return <svg
     className="max-h-[75vh] w-full rounded border border-gray-200 dark:border-gray-800"
@@ -208,7 +208,7 @@ export const LegendOfKeoza = () => {
         return <At
           key={tile.id}
           coordinate={coordinate}
-          onMoved={(to) => dispatchLegendOfKeozaEvent(move({ tileId: tile.id, position: to }))}
+          onMoved={(to) => dispatchHexagonWorldEvent(move({ tileId: tile.id, position: to }))}
         >
           <Tile environment={tile.environment}/>
         </At>;

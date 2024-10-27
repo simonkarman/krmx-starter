@@ -12,7 +12,7 @@ interface Tile {
   environment: Environment,
 }
 
-export const legendOfKeozaModel = new ProjectionModel(
+export const hexagonWorldModel = new ProjectionModel(
   { tiles: [
     { id: '0', position: { q: 0, r: 0 }, environment: 'plains' },
     { id: '1', position: { q: 1, r: 0 }, environment: 'forest' },
@@ -24,7 +24,7 @@ export const legendOfKeozaModel = new ProjectionModel(
 );
 
 const movePayloadSchema = z.object({ tileId: z.string().min(1), position: z.object({ q: z.number().int(), r: z.number().int() }) });
-export const move = legendOfKeozaModel.when('move', movePayloadSchema, (state, _, payload) => {
+export const move = hexagonWorldModel.when('move', movePayloadSchema, (state, _, payload) => {
   // Ensure a tile with this id exists
   const tileIndex = state.tiles.findIndex(tile => tile.id === payload.tileId);
   if (tileIndex === -1) {

@@ -1,13 +1,13 @@
 'use client';
 
 import { Chat } from '@/components/chat';
-import { ExampleBackgroundGraphic } from '@/components/example-background-graphic';
+import { ExampleAtomModel } from '@/examples/example-atom-model';
 import { useClient } from '@/store/krmx';
 import { capitalize } from '@krmx/state';
-import { ExampleAlphabet } from '@/components/example-alphabet';
-import { ExampleCardGame } from '@/components/example-card-game';
+import { ExampleStreamModel } from '@/examples/example-stream-model';
+import { ExampleProjectionModel } from '@/examples/example-projection-model';
 import { useState } from 'react';
-import { LegendOfKeoza } from '@/components/legend-of-keoza';
+import { ExampleMultiModel } from '@/examples/example-multi-model';
 
 export default function Page() {
   const { status, username } = useClient();
@@ -18,10 +18,10 @@ export default function Page() {
   }
 
   const tabs = [
-    { component: <ExampleBackgroundGraphic />, title: 'Atom Model' },
-    { component: <ExampleAlphabet />, title: 'Stream Model' },
-    { component: <ExampleCardGame />, title: 'Projection Model' },
-    { component: <LegendOfKeoza />, title: 'Legend of Keoza' },
+    { component: <ExampleAtomModel />, title: 'Atom Model' },
+    { component: <ExampleStreamModel />, title: 'Stream Model' },
+    { component: <ExampleProjectionModel />, title: 'Projection Model' },
+    { component: <ExampleMultiModel />, title: 'Multi Model' },
   ];
 
   return <div className="px-2 pb-16 pt-10 md:mx-4">

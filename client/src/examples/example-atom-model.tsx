@@ -104,7 +104,7 @@ const getLines = (index: number): Line[] => {
   return lines;
 };
 
-export const ExampleBackgroundGraphic = () => {
+export const ExampleAtomModel = () => {
   // TODO: resolve that the default value does not show up on first render if a rotation is already set on the server
   const [rotation, setRotation] = useAtom<number>('rotation', 0);
   const svgSize = new Vector2(310, 310);

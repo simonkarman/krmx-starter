@@ -56,7 +56,7 @@ const CardFront = (props: { x: number, y: number, suit: Suit, rank: Rank, classN
   </g>;
 };
 
-export function ExampleCardGame() {
+export function ExampleProjectionModel() {
   const { username: self, users } = useClient();
   const [cardCount, setCardCount] = useState(3);
   const [showProjection, setShowProjection] = useState(false);

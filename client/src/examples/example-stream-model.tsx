@@ -4,7 +4,7 @@ import { claimAlphabet, extendAlphabet, releaseAlphabet, resetAlphabet } from 'b
 import { capitalize } from '@krmx/state';
 import { AnimatePresence, motion } from 'framer-motion';
 
-export function ExampleAlphabet() {
+export function ExampleStreamModel() {
   const { username } = useClient();
   const alphabet = useAlphabet();
   const anotherUserClaimed = alphabet.claim !== undefined && alphabet.claim !== username;

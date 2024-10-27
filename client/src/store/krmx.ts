@@ -1,5 +1,5 @@
 import { createClient } from '@krmx/client-react';
-import { alphabetModel, cardGameModel, legendOfKeozaModel } from 'board';
+import { alphabetModel, cardGameModel, hexagonWorldModel } from 'board';
 import { registerAtoms, registerStream, registerProjection } from '@krmx/state-client-react';
 
 // Create the client
@@ -21,6 +21,6 @@ export const {
 } = registerProjection(client, 'card-game', cardGameModel);
 
 export const {
-  use: useLegendOfKeoza,
-  dispatch: dispatchLegendOfKeozaEvent,
-} = registerProjection(client, 'lok', legendOfKeozaModel);
+  use: useHexagonWorld,
+  dispatch: dispatchHexagonWorldEvent,
+} = registerProjection(client, 'hexagon-world', hexagonWorldModel);
