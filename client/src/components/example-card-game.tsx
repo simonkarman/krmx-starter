@@ -1,6 +1,7 @@
 import { client, dispatchCardGameEvent, useCardGame, useClient } from '@/store/krmx';
 import { capitalize, enumerate, Vector2 } from '@krmx/state';
 import { drawCard, playCard, Rank, Suit } from 'board';
+import { motion } from 'framer-motion';
 import { useState } from 'react';
 
 const cardSize = new Vector2(40, 56);
@@ -58,12 +59,12 @@ const CardFront = (props: { x: number, y: number, suit: Suit, rank: Rank, classN
 export function ExampleCardGame() {
   const { username: self, users } = useClient();
   const [cardCount, setCardCount] = useState(3);
-  const [showRawState, setShowRawState] = useState(false);
-  const view = useCardGame();
+  const [showProjection, setShowProjection] = useState(false);
+  const projection = useCardGame();
   const svgSize = { x: 400, y: 300 };
-  const viewText = JSON.stringify(view, null, 2).split('\n');
+  const projectionAsText = JSON.stringify(projection, null, 2).split('\n');
   const columns = 3;
-  const myTurn = view.turn !== false && view.order.length > 1 && view.order[view.turn] === self;
+  const myTurn = projection.turn !== false && projection.order.length > 1 && projection.order[projection.turn] === self;
 
   return <>
     <div className="flex items-end justify-between border-b border-gray-100 pb-1 dark:border-gray-800">
@@ -72,15 +73,17 @@ export function ExampleCardGame() {
         <button
           className="rounded bg-gray-200 px-2 py-0.5 text-sm font-bold text-gray-800 hover:bg-gray-300 dark:bg-slate-700 dark:text-gray-200
                      dark:hover:bg-slate-600"
-          onClick={() => setShowRawState(!showRawState)}
+          onClick={() => setShowProjection(!showProjection)}
         >
-          {showRawState ? 'Hide' : 'Show'} State
+          {showProjection ? 'Hide' : 'Show'} Projection JSON
         </button>
         <button
           className="rounded bg-blue-500 px-2 py-0.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50"
           disabled={users.filter(u => u.isLinked).length < 2}
           onClick={() => {
-            client.send({ type: 'chat/message', payload: `/cards ${users.filter(u => u.isLinked).map(u => u.username).join(' ')} ${cardCount}` });
+            client.send({
+              type: 'chat/message', payload: `/cards ${users.filter(u => u.isLinked).map(u => u.username).join(' ')} ${cardCount}`,
+            });
             setCardCount(c => {
               if (c === 10) {
                 return 3;
@@ -93,29 +96,58 @@ export function ExampleCardGame() {
         </button>
       </div>
     </div>
+    {showProjection && <>
+      <div
+        className={'my-2 overflow-auto flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white p-3 ' +
+          'dark:border-slate-950 dark:bg-slate-800'}
+      >
+        {Array.from({ length: columns }).map((_, i) => {
+          const startColumn = Math.floor(i * projectionAsText.length / columns);
+          const endColumn = Math.floor((i + 1) * projectionAsText.length / columns);
+          return <pre className={`${i === 0 ? '' : 'border-l'} border-slate-200 pl-2 text-xs dark:border-slate-700`} key={i}>
+            {projectionAsText.slice(startColumn, endColumn).join('\n')}
+          </pre>;
+        })}
+      </div>
+    </>}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 2, ease: 'easeInOut' }}
+      className="text-xs text-gray-600 dark:text-gray-300"
+    >
+      <p>
+        This is a simple card game. The goal is to get rid of all your cards. You can play a card if it matches the suit or rank of the top card on
+        the pile.
+        If you can&#39;t play a card, you have to draw one. The game ends when a player has no cards left.
+      </p>
+      <p>
+        You can play a card by clicking on it. If it&#39;s your turn, you can also draw a card by clicking on the deck.
+      </p>
+    </motion.div>
     <svg
       className="mb-5 mt-2 max-h-[75vh] w-full select-none rounded-xl border-slate-200 dark:border-slate-700"
       preserveAspectRatio="xMidYMid meet"
       viewBox={`${-svgSize.x / 2} ${-svgSize.y / 2} ${svgSize.x} ${svgSize.y}`}
     >
-      {view.finishers.length > 0 && <>
+      {projection.finishers.length > 0 && <>
         <text x={0} y={-cardSize.y} textAnchor="middle" dominantBaseline="middle" className="fill-current text-lg font-bold">
-          {capitalize(view.finishers[0])} has won!
-          {view.finishers.length > 2 && ` Also, ${enumerate(view.finishers.slice(1, -1))} finished!`}
+          {capitalize(projection.finishers[0])} has won!
+          {projection.finishers.length > 2 && ` Also, ${enumerate(projection.finishers.slice(1, -1))} finished!`}
         </text>
       </>}
-      {view.order.map((username, i) => {
-        const numberOfCards = view.hands.find(h => h.username === username)!.handSize;
+      {projection.order.map((username, i) => {
+        const numberOfCards = projection.hands.find(h => h.username === username)!.handSize;
         return <g
           key={username}
-          transform={`translate(${(i - (view.order.length - 1) / 2) * cardSize.x * 1.5}, ${-svgSize.y / 2 + cardSize.y / 2}) scale(0.7)`}
+          transform={`translate(${(i - (projection.order.length - 1) / 2) * cardSize.x * 1.5}, ${-svgSize.y / 2 + cardSize.y / 2}) scale(0.7)`}
         >
           {Array.from({ length: numberOfCards }).map((_, j) => {
             return <CardBack key={j} x={(j - (numberOfCards - 1) / 2) * 3} y={j * 3}/>;
           })}
           <text
             y={cardSize.y * 0.75 + numberOfCards * 3}
-            className={`${view.turn === i ? 'fill-amber-600 font-bold' : 'fill-current'} text-xs`}
+            className={`${projection.turn === i ? 'fill-amber-600 font-bold' : 'fill-current'} text-xs`}
             textAnchor="middle"
             dominantBaseline="middle"
           >
@@ -123,7 +155,7 @@ export function ExampleCardGame() {
           </text>
         </g>;
       })}
-      {view.deckSize > 1 && <CardBack x={-cardSize.x} y={0}/>}
+      {projection.deckSize > 1 && <CardBack x={-cardSize.x} y={0}/>}
       <CardBack
         x={-cardSize.x + 3}
         y={3}
@@ -136,16 +168,21 @@ export function ExampleCardGame() {
         dominantBaseline="middle"
         textAnchor="middle"
       >
-        {view.deckSize}x
+        {projection.deckSize}x
       </text>
-      {view.pile.length > 0 &&
-        <CardFront x={cardSize.x - 3} y={0} suit={view.pile[view.pile.length - 1].suit} rank={view.pile[view.pile.length - 1].rank}/>
+      {projection.pile.length > 0 &&
+        <CardFront
+          x={cardSize.x - 3}
+          y={0}
+          suit={projection.pile[projection.pile.length - 1].suit}
+          rank={projection.pile[projection.pile.length - 1].rank}
+        />
       }
-      {view.order.length > 0 && view.hand.map((card, i) => {
-        const gap = 7 - view.hand.length;
-        const x = (i * (cardSize.x + gap)) - ((view.hand.length - 1) / 2 * (cardSize.x + gap));
-        const rotation = (i - (view.hand.length - 1) / 2) * 7;
-        const yOffset = -Math.cos(Math.abs(rotation) / (12 + view.hand.length * 0.5)) * view.hand.length * 3;
+      {projection.order.length > 0 && projection.hand.map((card, i) => {
+        const gap = 7 - projection.hand.length;
+        const x = (i * (cardSize.x + gap)) - ((projection.hand.length - 1) / 2 * (cardSize.x + gap));
+        const rotation = (i - (projection.hand.length - 1) / 2) * 7;
+        const yOffset = -Math.cos(Math.abs(rotation) / (12 + projection.hand.length * 0.5)) * projection.hand.length * 3;
         return <CardFront
           key={card.id}
           x={x}
@@ -156,7 +193,7 @@ export function ExampleCardGame() {
           onClick={myTurn ? () => dispatchCardGameEvent(playCard(card.id)) : undefined}
         />;
       })}
-      {view.finishers.includes(self!) && <text
+      {projection.finishers.includes(self!) && <text
         x={0}
         y={svgSize.y / 2 - cardSize.y / 2 - 5}
         textAnchor="middle"
@@ -166,19 +203,5 @@ export function ExampleCardGame() {
         Well done!
       </text>}
     </svg>
-    {showRawState && <>
-      <div
-        className={'mx-3 overflow-auto flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white p-3 ' +
-          'dark:border-slate-700 dark:bg-slate-950'}
-      >
-        {Array.from({ length: columns }).map((_, i) => {
-          const startColumn = Math.floor(i * viewText.length / columns);
-          const endColumn = Math.floor((i + 1) * viewText.length / columns);
-          return <pre className={`${i === 0 ? '' : 'border-l'} border-slate-200 pl-2 text-xs dark:border-slate-700`} key={i}>
-            {viewText.slice(startColumn, endColumn).join('\n')}
-          </pre>;
-        })}
-      </div>
-    </>}
   </>;
 }

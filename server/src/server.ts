@@ -84,10 +84,9 @@ chat(server, {
       if (!isNaN(startConf.handSize)) {
         const result = dispatchCardGame(Root, startCardGame(startConf));
         if (!result.success) {
-          sendServerMessage('Failed to start gard game', true);
+          sendServerMessage('Failed to start the card game', true);
           return;
         }
-        sendServerMessage(`Card Game started with ${enumerate(startConf.players.map(capitalize))} and hand size ${startConf.handSize}`);
         return;
       }
     }
